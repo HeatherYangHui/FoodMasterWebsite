@@ -12,6 +12,15 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth import logout
 
+from django.contrib.gis.geos import Point
+from django.contrib.gis.measure import D  # Distance
+from .models import Restaurant
+
+import math
+import requests
+from django.conf import settings
+
+
 
 # -----------------------------
 # Login View
@@ -173,8 +182,173 @@ def password_reset_confirm_view(request, uidb64=None, token=None):
 # -----------------------------
 # Restaurant Search View
 # -----------------------------
+# def restaurant_search_view(request):
+#     # For now, just render the template directly (placeholder logic)
+#     return render(request, 'foodmaster/restaurant_search.html')
+
+
+
+# def restaurant_search_view(request):
+#     lat = request.GET.get('lat')
+#     lng = request.GET.get('lng')
+    
+#     if lat and lng:
+#         try:
+#             latitude = float(lat)
+#             longitude = float(lng)
+#             user_location = Point(longitude, latitude)  # Note: Point(x, y) where x=lng, y=lat
+#             # Filter restaurants within 2 miles (adjust as needed)
+#             restaurants = Restaurant.objects.filter(location__distance_lte=(user_location, D(mi=2)))
+#         except ValueError:
+#             restaurants = Restaurant.objects.all()  # fallback if conversion fails
+#     else:
+#         restaurants = Restaurant.objects.all()
+    
+#     return render(request, 'foodmaster/restaurant_search.html', {'restaurants': restaurants})
+
+
+
+
+
+def haversine_distance(lat1, lon1, lat2, lon2):
+    """
+    Calculate the distance between two lat/lng pairs in miles using the Haversine formula.
+    """
+    R = 3958.8  # Earth radius in miles
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat/2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
+
+# helper function to get nearby restaurants
+
+def get_nearby_restaurants(lat, lng, radius=500):
+    
+    endpoint = "https://places.googleapis.com/v1/places:searchNearby"
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": settings.GOOGLE_PLACES_API_KEY,
+        "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location,places.types,places.rating"
+    }
+    payload = {
+        "includedTypes": ["restaurant"],
+        "maxResultCount": 10,
+        "locationRestriction": {
+            "circle": {
+                "center": {
+                    "latitude": lat,
+                    "longitude": lng
+                },
+                "radius": float(radius)  # 单位为米
+            }
+        }
+    }
+    response = requests.post(endpoint, headers=headers, json=payload)
+    print(response)
+    print("Google Places API (New) response:")
+    print(response.status_code, response.text)
+    
+    data = response.json()
+    restaurants = []
+    if "places" in data:
+        for place in data["places"]:
+            restaurants.append({
+            "name": place.get("displayName"),
+            "rating": place.get("rating", "N/A"),
+            "userRatingCount": place.get("userRatingCount"),
+            "priceLevel": place.get("priceLevel"),
+            "address": place.get("formattedAddress"),
+            "types": place.get("types", []),
+        })
+
+    else:
+        print("No places found or error:", data.get("error", data))
+    
+    return restaurants
+
+# def get_nearby_restaurants(lat, lng, radius=500):
+#     """
+#     Use the new Places API to search for nearby restaurants.
+#     Now includes 'places.photos' in the field mask to retrieve photo references.
+#     """
+#     endpoint = "https://places.googleapis.com/v1/places:searchNearby"
+#     headers = {
+#         "Content-Type": "application/json",
+#         "X-Goog-Api-Key": settings.GOOGLE_PLACES_API_KEY,
+#         # Add 'places.photos' to request photos
+#         "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location,places.types,places.rating,places.photos"
+#     }
+#     payload = {
+#         "includedTypes": ["restaurant"],
+#         "maxResultCount": 10,
+#         "locationRestriction": {
+#             "circle": {
+#                 "center": {
+#                     "latitude": lat,
+#                     "longitude": lng
+#                 },
+#                 "radius": float(radius)  # in meters
+#             }
+#         }
+#     }
+#     response = requests.post(endpoint, headers=headers, json=payload)
+#     data = response.json()
+
+#     restaurants = []
+#     if "places" in data:
+#         for place in data["places"]:
+#             # Extract basic fields
+#             name = place.get("displayName")
+#             rating = place.get("rating", "N/A")
+#             address = place.get("formattedAddress", "No address provided")
+            
+#             # Attempt to extract the first photo reference
+#             photo_url = None
+#             photos_data = place.get("photos", [])
+#             if photos_data:
+#                 # The new API typically stores the reference in 'photoReference'
+#                 first_photo = photos_data[0]
+#                 photo_ref = first_photo.get("photoReference")
+#                 if photo_ref:
+#                     # Construct a photo URL using the old endpoint
+#                     photo_url = (
+#                         "https://maps.googleapis.com/maps/api/place/photo"
+#                         f"?maxwidth=400&photo_reference={photo_ref}"
+#                         f"&key={settings.GOOGLE_PLACES_API_KEY}"
+#                     )
+#             else:        
+#                 print("No photo data")
+            
+#             restaurants.append({
+#                 "name": name,
+#                 "rating": rating,
+#                 "address": address,
+#                 "photo_url": photo_url,
+#             })
+#     else:
+#         print("No places found or error:", data.get("error", data))
+
+#     return restaurants
+
+
+
 def restaurant_search_view(request):
-    # For now, just render the template directly (placeholder logic)
-    return render(request, 'foodmaster/restaurant_search.html')
+    lat = request.GET.get('lat')
+    lng = request.GET.get('lng')
+    restaurants = []
+    
+    if lat and lng:
+        try:
+            user_lat = float(lat)
+            user_lng = float(lng)
+            restaurants = get_nearby_restaurants(user_lat, user_lng)
+        except ValueError:
+            print("Error: Latitude or longitude could not be converted to float.")
+    else:
+        print("No latitude/longitude found in query parameters.")
+    
+    return render(request, 'foodmaster/restaurant_search.html', {'restaurants': restaurants})
 
 

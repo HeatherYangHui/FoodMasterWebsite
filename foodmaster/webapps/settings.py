@@ -168,3 +168,10 @@ SOCIALACCOUNT_PROVIDERS = {
         }
     }
 }
+
+# For user location
+GDAL_LIBRARY_PATH = '/opt/homebrew/Cellar/gdal/3.10.2_3/lib/libgdal.dylib'
+GEOS_LIBRARY_PATH = '/opt/homebrew/Cellar/geos/3.13.1/lib/libgeos_c.dylib'
+
+
+GOOGLE_PLACES_API_KEY = 'AIzaSyCJ69ANDmjudhXk0wjWtDk7MDrdvx9OnRo'
