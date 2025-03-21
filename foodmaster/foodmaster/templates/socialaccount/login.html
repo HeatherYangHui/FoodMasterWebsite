@@ -1,0 +1,60 @@
+{% extends "foodmaster/base.html" %}
+{% load socialaccount %}
+
+{% block title %}Sign In via Google{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin: 40px auto;">
+  <h2 style="text-align: center; margin-bottom: 30px;">Sign In via Google</h2>
+  
+  <div style="
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    font-size: 24px;
+  ">
+    {% if process == 'login' %}
+      <p>You are about to sign in using your Google account.</p>
+    {% else %}
+      <p>Create a new Food Master account using your Google credentials.</p>
+    {% endif %}
+    
+    <form method="post" action="{{ action_url }}" style="margin-top: 20px;">
+      {% csrf_token %}
+      <button 
+        type="submit" 
+        class="btn btn-primary" 
+        style="
+          font-size: 18px;
+          width: 100%; 
+          max-width: 300px; 
+          margin: 0 auto; 
+          display: block; 
+          padding: 12px;
+        "
+      >
+        Continue
+      </button>
+    </form>
+    
+    <div style="margin-top: 15px;">
+      <a 
+        href="{% url 'login' %}" 
+        class="btn btn-secondary" 
+        style="
+          font-size: 18px;
+          width: 100%; 
+          max-width: 300px; 
+          display: block; 
+          padding: 12px; 
+          margin: 0 auto;
+        "
+      >
+        Cancel
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

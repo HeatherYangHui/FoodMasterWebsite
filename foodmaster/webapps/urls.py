@@ -43,4 +43,8 @@ urlpatterns = [
     path('dashboard/', views.dashboard_view, name='dashboard'),
 
     path('restaurant_search/', views.restaurant_search_view, name='restaurant_search'),
+
+    path('profile/', views.profile_view, name='profile'),
+    path('logout/', views.logout_view, name='logout'),
+    
 ]

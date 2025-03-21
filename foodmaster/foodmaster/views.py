@@ -10,6 +10,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
+from django.contrib.auth import logout
+
 
 # -----------------------------
 # Login View
@@ -72,6 +74,40 @@ def dashboard_view(request):
     return render(request, 'foodmaster/dashboard.html')
 
 
+# -----------------------------
+# Profile View (Requires Login)
+# -----------------------------
+@login_required
+def profile_view(request):
+    if request.method == 'POST':
+        # For now, just update the built-in User fields
+        user = request.user
+        new_full_name = request.POST.get('full_name', user.first_name)
+        new_username = request.POST.get('username', user.username)
+        new_bio = request.POST.get('bio', '')  # Currently not stored anywhere, just a placeholder
+
+        # Update built-in user fields
+        user.first_name = new_full_name
+        user.username = new_username
+        user.save()
+
+        messages.success(request, "Profile updated (placeholder logic).")
+        return redirect('profile')
+
+    return render(request, 'foodmaster/profile.html')
+
+
+# -----------------------------
+# Logout View
+# -----------------------------
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+
+# -----------------------------
+# Profile View (Requires Login)
+# -----------------------------
 def home_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
@@ -134,6 +170,9 @@ def password_reset_confirm_view(request, uidb64=None, token=None):
     })
 
 
+# -----------------------------
+# Restaurant Search View
+# -----------------------------
 def restaurant_search_view(request):
     # For now, just render the template directly (placeholder logic)
     return render(request, 'foodmaster/restaurant_search.html')
