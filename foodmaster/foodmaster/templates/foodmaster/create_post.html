@@ -1,0 +1,82 @@
+{% extends 'foodmaster/base.html' %}
+
+{% block title %}Food Master - Create Post{% endblock %}
+
+{% block content %}
+<div class="wireframe-section">
+  <div class="wireframe">
+    <div class="navbar">
+      <div class="logo">Food Master</div>
+      <div class="search-bar">Search social posts...</div>
+      <div class="nav-menu">
+        <div class="nav-link">Home</div>
+        <div class="nav-link">Discover</div>
+        <div class="nav-link">Cook&Home</div>
+        <div class="nav-link active">Social</div>
+        <div class="nav-link">Saved</div>
+      </div>
+      <div class="user-menu">
+        <div class="user-avatar">👤</div>
+      </div>
+    </div>
+    
+    <div style="max-width: 800px; margin: 0 auto;">
+      <h3 style="margin-bottom: 20px;">Create New Post</h3>
+      
+      <form method="post" action="{% url 'foodmaster:create_post' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <label class="form-label">Upload Photo</label>
+          <div style="border: 2px dashed #ddd; border-radius: 8px; padding: 40px; text-align: center; margin-bottom: 20px;">
+            <div style="font-size: 48px; margin-bottom: 10px;">📸</div>
+            <p>Click to upload a photo or drag & drop</p>
+            <input type="file" name="photo" style="display: none;" id="photo-upload">
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('photo-upload').click()">Select Photo</button>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea name="content" class="form-input" style="min-height: 120px;" placeholder="Share your food experience..."></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select name="category" class="form-input">
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner" selected>Dinner</option>
+            <option value="dessert">Dessert</option>
+            <option value="drinks">Drinks</option>
+            <option value="snack">Snack</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Tags</label>
+          <input type="text" name="tags" class="form-input" placeholder="e.g. #homemade #italian #pasta (comma separated)">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Location</label>
+          <div style="display: flex; gap: 10px;">
+            <select name="location_type" class="form-input" style="flex: 1;">
+              <option value="homemade">Homemade</option>
+              <option value="restaurant">Restaurant</option>
+              <option value="cafe">Café</option>
+              <option value="other">Other</option>
+            </select>
+            <input type="text" name="location_name" class="form-input" style="flex: 2;" placeholder="Restaurant/Place name (if applicable)">
+          </div>
+        </div>
+        
+        <div style="margin-top: 30px; display: flex; gap: 20px; justify-content: center;">
+          <a href="{% url 'social_feed' %}"><button type="button" class="btn btn-secondary">Cancel</button></a>
+          <button type="submit" class="btn btn-primary">Share Post</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

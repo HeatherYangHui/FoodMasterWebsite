@@ -1,0 +1,56 @@
+{% extends 'foodmaster/base.html' %}
+
+{% block title %}Food Master - Discover Your Next Culinary Adventure{% endblock %}
+
+{% block content %}
+<header>
+  <h1>Food Master - Web Application</h1>
+  <p>Discover Your Next Culinary Adventure</p>
+</header>
+
+<div class="wireframe-section">
+  <div class="wireframe">
+    <div class="navbar">
+      <div class="logo">Food Master</div>
+      <div class="nav-menu">
+        <div class="nav-link">Features</div>
+        <div class="nav-link">About</div>
+        <div class="nav-link">Contact</div>
+      </div>
+      <div class="user-menu">
+        <a href="{% url 'login' %}"><button class="btn btn-secondary">Login</button></a>
+        <a href="{% url 'register' %}"><button class="btn btn-primary">Sign Up</button></a>
+      </div>
+    </div>
+    
+    <div class="landing">
+      <div class="landing-left">
+        <div class="landing-title">Discover Your Next Culinary Adventure</div>
+        <div class="landing-subtitle">Find restaurants, recipes, and connect with food enthusiasts</div>
+        <a href="{% url 'register' %}"><button class="btn btn-primary" style="width: 200px;">Get Started</button></a>
+      </div>
+      <div class="landing-right">
+        [Hero Image]
+      </div>
+    </div>
+    
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">🍽️</div>
+        <div class="feature-title">Dining Recommendations</div>
+        <p>Discover the best restaurants near you based on your preferences and location</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">👨‍🍳</div>
+        <div class="feature-title">Cooking at Home</div>
+        <p>Find recipes and grocery stores to prepare delicious meals in your kitchen</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">👥</div>
+        <div class="feature-title">Food Community</div>
+        <p>Share your culinary experiences and connect with other food enthusiasts</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

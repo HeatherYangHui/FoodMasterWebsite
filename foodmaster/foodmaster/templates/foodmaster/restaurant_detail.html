@@ -1,0 +1,206 @@
+{% extends 'foodmaster/base.html' %}
+
+{% block title %}Food Master - {{ restaurant.name }}{% endblock %}
+
+{% block content %}
+<div class="wireframe-section">
+  <div class="wireframe">
+    <div class="navbar">
+      <div class="logo">Food Master</div>
+      <div class="search-bar">Search for restaurants...</div>
+      <div class="nav-menu">
+        <div class="nav-link">Home</div>
+        <div class="nav-link active">Discover</div>
+        <div class="nav-link">Cook&Home</div>
+        <div class="nav-link">Social</div>
+        <div class="nav-link">Saved</div>
+      </div>
+      <div class="user-menu">
+        <div class="user-avatar">👤</div>
+      </div>
+    </div>
+    
+    <div style="height: 300px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+      [Restaurant Hero Image]
+    </div>
+    
+    <div class="split-content">
+      <div class="main-content">
+        <h2>{% if restaurant %}{{ restaurant.name }}{% else %}Mario's Pizza{% endif %}</h2>
+        <div style="margin-bottom: 20px;">
+          <span>{% if restaurant %}{{ restaurant.cuisine }}{% else %}Italian{% endif %} • 
+          {% if restaurant %}{{ restaurant.price_range }}{% else %}$${% endif %} • 
+          {% if restaurant %}{{ restaurant.distance }}{% else %}0.8{% endif %} miles • </span>
+          <span style="color: #4CAF50;">{% if restaurant %}{{ restaurant.status }}{% else %}Open • Closes at 10:00 PM{% endif %}</span>
+        </div>
+        <div style="margin-bottom: 20px;">⭐ {% if restaurant %}{{ restaurant.rating }}{% else %}4.7{% endif %} 
+          ({% if restaurant %}{{ restaurant.reviews }}{% else %}324{% endif %} reviews)</div>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 30px;">
+          <button class="btn btn-primary">Make Reservation</button>
+          <button class="btn btn-secondary">View Menu</button>
+          <button class="btn btn-secondary">Save</button>
+          <button class="btn btn-secondary">Share</button>
+        </div>
+        
+        <div style="margin-bottom: 30px;">
+          <h3>About</h3>
+          <p>{% if restaurant %}{{ restaurant.description }}{% else %}Mario's Pizza serves authentic Italian pizza made with fresh ingredients in a wood-fired oven. Family owned since 1985, we pride ourselves on traditional recipes and warm hospitality.{% endif %}</p>
+        </div>
+        
+        <div style="margin-bottom: 30px;">
+          <h3>Location & Contact</h3>
+          <p>{% if restaurant %}{{ restaurant.address }}{% else %}123 Main Street, Anytown{% endif %}</p>
+          <p>Phone: {% if restaurant %}{{ restaurant.phone }}{% else %}(555) 123-4567{% endif %}</p>
+          <p>Website: {% if restaurant %}{{ restaurant.website }}{% else %}www.mariospizza.com{% endif %}</p>
+        </div>
+        
+        <div style="margin-bottom: 30px;">
+          <h3>Hours</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">Monday</td>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">11:00 AM - 10:00 PM</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">Tuesday</td>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">11:00 AM - 10:00 PM</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">Wednesday</td>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">11:00 AM - 10:00 PM</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">Thursday</td>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">11:00 AM - 10:00 PM</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">Friday</td>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">11:00 AM - 11:00 PM</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">Saturday</td>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">11:00 AM - 11:00 PM</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">Sunday</td>
+              <td style="padding: 8px; border-bottom: 1px solid #eee;">12:00 PM - 9:00 PM</td>
+            </tr>
+          </table>
+        </div>
+        
+        <div>
+          <h3>Reviews</h3>
+          <div class="reviews">
+            <div class="review">
+              <div class="review-header">
+                <div class="review-avatar">👤</div>
+                <div>
+                  <strong>John D.</strong>
+                  <div>⭐⭐⭐⭐⭐</div>
+                </div>
+              </div>
+              <p>Best pizza in town! The crust is perfectly crispy and the sauce is delicious. Highly recommend the Margherita.</p>
+            </div>
+            
+            <div class="review">
+              <div class="review-header">
+                <div class="review-avatar">👤</div>
+                <div>
+                  <strong>Sarah M.</strong>
+                  <div>⭐⭐⭐⭐</div>
+                </div>
+              </div>
+              <p>Great food but service can be a bit slow during peak hours. The garlic knots are amazing!</p>
+            </div>
+            
+            <div class="review">
+              <div class="review-header">
+                <div class="review-avatar">👤</div>
+                <div>
+                  <strong>Michael T.</strong>
+                  <div>⭐⭐⭐⭐⭐</div>
+                </div>
+              </div>
+              <p>Authentic Italian taste. Family owned and it shows in the quality. Definitely coming back!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="sidebar">
+        <div class="map-container">
+          [Map View]
+        </div>
+        
+        <div style="background-color: white; border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+          <h4>Make a Reservation</h4>
+          
+          <form>
+            <div class="form-group">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-input">
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Time</label>
+              <select class="form-input">
+                <option>11:00 AM</option>
+                <option>11:30 AM</option>
+                <option>12:00 PM</option>
+                <!-- More time options -->
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">Party Size</label>
+              <select class="form-input">
+                <option>1 person</option>
+                <option selected>2 people</option>
+                <option>3 people</option>
+                <option>4 people</option>
+                <option>5 people</option>
+                <option>6 people</option>
+                <option>7+ people</option>
+              </select>
+            </div>
+            
+            <button class="btn btn-primary" style="width: 100%;">Find a Table</button>
+          </form>
+        </div>
+        
+        <div style="background-color: white; border: 1px solid #eee; border-radius: 8px; padding: 15px;">
+          <h4>Nearby Restaurants</h4>
+          
+          <div style="display: flex; margin-bottom: 15px;">
+            <div style="width: 60px; height: 60px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; margin-right: 10px;">🍝</div>
+            <div>
+              <div><strong>Pasta Paradise</strong></div>
+              <div>Italian • $$$ • 1.2 miles</div>
+              <div>⭐ 4.5 (187)</div>
+            </div>
+          </div>
+          
+          <div style="display: flex; margin-bottom: 15px;">
+            <div style="width: 60px; height: 60px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; margin-right: 10px;">🥙</div>
+            <div>
+              <div><strong>Mediterranean Delight</strong></div>
+              <div>Mediterranean • $$ • 1.5 miles</div>
+              <div>⭐ 4.6 (253)</div>
+            </div>
+          </div>
+          
+          <div style="display: flex;">
+            <div style="width: 60px; height: 60px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; margin-right: 10px;">🍔</div>
+            <div>
+              <div><strong>Burger Joint</strong></div>
+              <div>American • $$ • 0.6 miles</div>
+              <div>⭐ 4.3 (426)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

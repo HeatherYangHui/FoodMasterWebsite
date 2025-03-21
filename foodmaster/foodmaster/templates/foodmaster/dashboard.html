@@ -1,0 +1,70 @@
+{% extends 'foodmaster/base.html' %}
+
+{% block title %}Food Master - Dashboard{% endblock %}
+
+{% block content %}
+<div class="wireframe-section">
+  <div class="wireframe">
+    <div class="navbar">
+      <div class="logo">Food Master</div>
+      <div class="search-bar">Search for restaurants, recipes, users...</div>
+      <div class="nav-menu">
+        <div class="nav-link active">Home</div>
+        <div class="nav-link">Discover</div>
+        <div class="nav-link">Cook&Home</div>
+        <div class="nav-link">Social</div>
+        <div class="nav-link">Saved</div>
+      </div>
+      <div class="user-menu">
+        <div class="user-avatar">👤</div>
+      </div>
+    </div>
+    
+    <div style="margin-bottom: 30px;">
+      <h3>Welcome back, {{ user.first_name }}!</h3>
+      <p>What would you like to eat today?</p>
+    </div>
+    
+    <div style="display: flex; gap: 20px; margin-bottom: 40px;">
+      <a href="{% url 'restaurant_search' %}"><button class="btn btn-primary">Find Restaurants</button></a>
+      <button class="btn btn-secondary">Cook at Home</button>
+      <button class="btn btn-secondary">Explore Community</button>
+    </div>
+    
+    <div style="margin-bottom: 30px;">
+      <h4>Recommendations For You</h4>
+      <div class="content">
+        <div class="card">
+          <div class="card-img">Restaurant Image</div>
+          <div class="card-content">
+            <div class="card-title">Mario's Pizza</div>
+            <div>Italian • $$</div>
+            <div>⭐ 4.7 (324 reviews)</div>
+            <div style="color: #4CAF50;">0.8 miles away</div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-img">Recipe Image</div>
+          <div class="card-content">
+            <div class="card-title">Homemade Pasta</div>
+            <div>Italian • 45 min</div>
+            <div>⭐ 4.8 (156 reviews)</div>
+            <div style="color: #4CAF50;">Matches your taste</div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-img">Restaurant Image</div>
+          <div class="card-content">
+            <div class="card-title">Sushi Delight</div>
+            <div>Japanese • $$$</div>
+            <div>⭐ 4.9 (412 reviews)</div>
+            <div style="color: #4CAF50;">New in your area</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

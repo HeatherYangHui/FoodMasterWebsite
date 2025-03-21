@@ -1,0 +1,204 @@
+{% extends 'foodmaster/base.html' %}
+
+{% block title %}Food Master - Your Profile{% endblock %}
+
+{% block content %}
+<div class="wireframe-section">
+  <div class="wireframe">
+    <div class="navbar">
+      <div class="logo">Food Master</div>
+      <div class="search-bar">Search for recipes, restaurants...</div>
+      <div class="nav-menu">
+        <div class="nav-link">Home</div>
+        <div class="nav-link">Discover</div>
+        <div class="nav-link">Cook&Home</div>
+        <div class="nav-link">Social</div>
+        <div class="nav-link">Saved</div>
+      </div>
+      <div class="user-menu">
+        <div class="user-avatar">👤</div>
+      </div>
+    </div>
+    
+    <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+      <h2 style="margin-bottom: 30px;">Your Profile</h2>
+      
+      {% if messages %}
+      <div style="background-color: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+        {% for message in messages %}
+          {{ message }}
+        {% endfor %}
+      </div>
+      {% endif %}
+      
+      <div class="split-content">
+        <div class="main-content">
+          <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div style="display: flex; gap: 30px; margin-bottom: 30px;">
+              <div style="flex: 0 0 150px;">
+                <div style="width: 150px; height: 150px; border-radius: 50%; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; overflow: hidden;">
+                  {% if user.profile_image %}
+                  <img src="{{ user.profile_image.url }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                  {% else %}
+                  <span style="font-size: 60px;">👤</span>
+                  {% endif %}
+                </div>
+                <div style="text-align: center;">
+                  <label for="profile-image-upload" class="btn btn-secondary" style="font-size: 12px; padding: 8px 12px; cursor: pointer;">Change Photo</label>
+                  <input type="file" name="profile_image" id="profile-image-upload" style="display: none;">
+                </div>
+              </div>
+              
+              <div style="flex: 1;">
+                <div class="form-group">
+                  <label class="form-label">Full Name</label>
+                  <input type="text" name="full_name" class="form-input" value="{{ user.get_full_name }}" placeholder="Your full name">
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Username</label>
+                  <input type="text" name="username" class="form-input" value="{{ user.username }}" placeholder="Your username">
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input type="email" name="email" class="form-input" value="{{ user.email }}" {% if user.social_auth.exists %}disabled{% endif %}>
+                  {% if user.social_auth.exists %}
+                  <div style="font-size: 12px; color: #666; margin-top: 5px;">Email cannot be changed for social accounts.</div>
+                  {% endif %}
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Bio</label>
+                  <textarea name="bio" class="form-input" style="min-height: 100px;" placeholder="Tell us a bit about yourself">{{ user.profile.bio }}</textarea>
+                </div>
+              </div>
+            </div>
+            
+            <div style="border-top: 1px solid #eee; padding-top: 30px; margin-bottom: 30px;">
+              <h3 style="margin-bottom: 20px;">Food Preferences</h3>
+              
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                <div class="form-group">
+                  <label class="form-label">Dietary Restrictions</label>
+                  <select name="dietary_restrictions" class="form-input" multiple style="height: 100px;">
+                    <option value="vegetarian" {% if 'vegetarian' in user.profile.dietary_restrictions %}selected{% endif %}>Vegetarian</option>
+                    <option value="vegan" {% if 'vegan' in user.profile.dietary_restrictions %}selected{% endif %}>Vegan</option>
+                    <option value="gluten_free" {% if 'gluten_free' in user.profile.dietary_restrictions %}selected{% endif %}>Gluten Free</option>
+                    <option value="dairy_free" {% if 'dairy_free' in user.profile.dietary_restrictions %}selected{% endif %}>Dairy Free</option>
+                    <option value="keto" {% if 'keto' in user.profile.dietary_restrictions %}selected{% endif %}>Keto</option>
+                    <option value="paleo" {% if 'paleo' in user.profile.dietary_restrictions %}selected{% endif %}>Paleo</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Favorite Cuisines</label>
+                  <select name="favorite_cuisines" class="form-input" multiple style="height: 100px;">
+                    <option value="italian" {% if 'italian' in user.profile.favorite_cuisines %}selected{% endif %}>Italian</option>
+                    <option value="mexican" {% if 'mexican' in user.profile.favorite_cuisines %}selected{% endif %}>Mexican</option>
+                    <option value="chinese" {% if 'chinese' in user.profile.favorite_cuisines %}selected{% endif %}>Chinese</option>
+                    <option value="japanese" {% if 'japanese' in user.profile.favorite_cuisines %}selected{% endif %}>Japanese</option>
+                    <option value="indian" {% if 'indian' in user.profile.favorite_cuisines %}selected{% endif %}>Indian</option>
+                    <option value="french" {% if 'french' in user.profile.favorite_cuisines %}selected{% endif %}>French</option>
+                    <option value="thai" {% if 'thai' in user.profile.favorite_cuisines %}selected{% endif %}>Thai</option>
+                    <option value="mediterranean" {% if 'mediterranean' in user.profile.favorite_cuisines %}selected{% endif %}>Mediterranean</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Cooking Skill Level</label>
+                  <select name="cooking_skill" class="form-input">
+                    <option value="beginner" {% if user.profile.cooking_skill == 'beginner' %}selected{% endif %}>Beginner</option>
+                    <option value="intermediate" {% if user.profile.cooking_skill == 'intermediate' %}selected{% endif %}>Intermediate</option>
+                    <option value="advanced" {% if user.profile.cooking_skill == 'advanced' %}selected{% endif %}>Advanced</option>
+                    <option value="professional" {% if user.profile.cooking_skill == 'professional' %}selected{% endif %}>Professional</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Location</label>
+                  <input type="text" name="location" class="form-input" value="{{ user.profile.location }}" placeholder="City, Country">
+                </div>
+              </div>
+            </div>
+            
+            <div style="border-top: 1px solid #eee; padding-top: 30px; margin-bottom: 30px;">
+              <h3 style="margin-bottom: 20px;">Account Settings</h3>
+              
+              <div class="form-group">
+                <label class="form-label">Social Accounts</label>
+                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px;">
+                  {% if user.social_auth.exists %}
+                    {% for account in user.social_auth.all %}
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                      <div style="width: 24px; height: 24px; margin-right: 10px;">
+                        {% if account.provider == 'google-oauth2' %}
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px">
+                          <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+                          <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+                          <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+                          <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+                        </svg>
+                        {% endif %}
+                      </div>
+                      <div>
+                        <strong>{{ account.provider|title }}</strong>
+                        <div style="font-size: 12px; color: #666;">Connected on {{ account.created|date:"M d, Y" }}</div>
+                      </div>
+                    </div>
+                    {% endfor %}
+                  {% else %}
+                    <div style="color: #666;">No social accounts connected.</div>
+                  {% endif %}
+                  
+                  {% if not user.has_usable_password and user.social_auth.exists %}
+                    <div style="margin-top: 15px;">
+                      <a href="{% url 'set_password' %}" class="btn btn-secondary" style="font-size: 12px; padding: 8px 12px;">Set Password</a>
+                      <div style="font-size: 12px; color: #666; margin-top: 5px;">Setting a password allows you to log in with email.</div>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+              
+              {% if user.has_usable_password %}
+              <div class="form-group">
+                <label class="form-label">Change Password</label>
+                <a href="{% url 'password_change' %}" class="btn btn-secondary" style="font-size: 14px; padding: 8px 12px;">Change Password</a>
+              </div>
+              {% endif %}
+              
+              <div class="form-group">
+                <label class="form-label">Email Notifications</label>
+                <div>
+                  <div class="checkbox-item">
+                    <input type="checkbox" id="notif1" name="email_notifications" value="new_follower" {% if 'new_follower' in user.profile.email_notifications %}checked{% endif %}>
+                    <label class="checkbox-label" for="notif1">New followers</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input type="checkbox" id="notif2" name="email_notifications" value="comments" {% if 'comments' in user.profile.email_notifications %}checked{% endif %}>
+                    <label class="checkbox-label" for="notif2">Comments on your posts</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input type="checkbox" id="notif3" name="email_notifications" value="likes" {% if 'likes' in user.profile.email_notifications %}checked{% endif %}>
+                    <label class="checkbox-label" for="notif3">Likes on your posts</label>
+                  </div>
+                  <div class="checkbox-item">
+                    <input type="checkbox" id="notif4" name="email_notifications" value="new_recipes" {% if 'new_recipes' in user.profile.email_notifications %}checked{% endif %}>
+                    <label class="checkbox-label" for="notif4">New recipes matching your preferences</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div style="text-align: center;">
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
