@@ -223,14 +223,13 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 
 
 # helper function to get nearby restaurants
-
 def get_nearby_restaurants(lat, lng, radius=500):
-    
     endpoint = "https://places.googleapis.com/v1/places:searchNearby"
     headers = {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": settings.GOOGLE_PLACES_API_KEY,
-        "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location,places.types,places.rating"
+        # Request photo data by including places.photos in the field mask
+        "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location,places.types,places.rating,places.photos"
     }
     payload = {
         "includedTypes": ["restaurant"],
@@ -241,32 +240,93 @@ def get_nearby_restaurants(lat, lng, radius=500):
                     "latitude": lat,
                     "longitude": lng
                 },
-                "radius": float(radius)  # 单位为米
+                "radius": float(radius)  # in meters
             }
         }
     }
     response = requests.post(endpoint, headers=headers, json=payload)
-    print(response)
-    print("Google Places API (New) response:")
-    print(response.status_code, response.text)
-    
     data = response.json()
     restaurants = []
     if "places" in data:
         for place in data["places"]:
+            display_name = place.get("displayName")
+            rating = place.get("rating", "N/A")
+            address = place.get("formattedAddress", "No address provided")
+            photo_url = None
+            photos_data = place.get("photos", [])
+            if photos_data:
+                first_photo = photos_data[0]
+                # Use the new photo resource name from the "name" field
+                photo_resource = first_photo.get("name")
+                if photo_resource:
+                    photo_url = (
+                        f"https://places.googleapis.com/v1/{photo_resource}/media"
+                        f"?maxHeightPx=400&maxWidthPx=400&key={settings.GOOGLE_PLACES_API_KEY}"
+                    )
             restaurants.append({
-            "name": place.get("displayName"),
-            "rating": place.get("rating", "N/A"),
-            "userRatingCount": place.get("userRatingCount"),
-            "priceLevel": place.get("priceLevel"),
-            "address": place.get("formattedAddress"),
-            "types": place.get("types", []),
-        })
-
+                "name": {"text": display_name},
+                "rating": rating,
+                "address": address,
+                "photo_url": photo_url,
+            })
     else:
         print("No places found or error:", data.get("error", data))
     
     return restaurants
+
+
+# def get_nearby_restaurants(lat, lng, radius=500):
+#     endpoint = "https://places.googleapis.com/v1/places:searchNearby"
+#     headers = {
+#         "Content-Type": "application/json",
+#         "X-Goog-Api-Key": settings.GOOGLE_PLACES_API_KEY,
+#         # Include 'places.photos' to get photo data
+#         "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location,places.types,places.rating,places.photos"
+#     }
+#     payload = {
+#         "includedTypes": ["restaurant"],
+#         "maxResultCount": 10,
+#         "locationRestriction": {
+#             "circle": {
+#                 "center": {
+#                     "latitude": lat,
+#                     "longitude": lng
+#                 },
+#                 "radius": float(radius)  # in meters
+#             }
+#         }
+#     }
+#     response = requests.post(endpoint, headers=headers, json=payload)
+#     data = response.json()
+#     restaurants = []
+#     if "places" in data:
+#         for place in data["places"]:
+#             name = place.get("displayName")
+#             rating = place.get("rating", "N/A")
+#             address = place.get("formattedAddress", "No address provided")
+#             photo_url = None
+#             photos_data = place.get("photos", [])
+#             if photos_data:
+#                 first_photo = photos_data[0]
+#                 # The API returns the key as "photoReference"
+#                 photo_ref = first_photo.get("photoReference")
+#                 if photo_ref:
+#                     photo_url = (
+#                         "https://maps.googleapis.com/maps/api/place/photo"
+#                         f"?maxwidth=400&photo_reference={photo_ref}"
+#                         f"&key={settings.GOOGLE_PLACES_API_KEY}"
+#                     )
+#             restaurants.append({
+#                 "name": name,
+#                 "rating": rating,
+#                 "address": address,
+#                 "photo_url": photo_url,
+#             })
+#     else:
+#         print("No places found or error:", data.get("error", data))
+    
+#     return restaurants
+
 
 # def get_nearby_restaurants(lat, lng, radius=500):
 #     """
@@ -334,6 +394,23 @@ def get_nearby_restaurants(lat, lng, radius=500):
 
 
 
+# def restaurant_search_view(request):
+#     lat = request.GET.get('lat')
+#     lng = request.GET.get('lng')
+#     restaurants = []
+    
+#     if lat and lng:
+#         try:
+#             user_lat = float(lat)
+#             user_lng = float(lng)
+#             restaurants = get_nearby_restaurants(user_lat, user_lng)
+#         except ValueError:
+#             print("Error: Latitude or longitude could not be converted to float.")
+#     else:
+#         print("No latitude/longitude found in query parameters.")
+    
+#     return render(request, 'foodmaster/restaurant_search.html', {'restaurants': restaurants})
+
 def restaurant_search_view(request):
     lat = request.GET.get('lat')
     lng = request.GET.get('lng')
@@ -349,6 +426,12 @@ def restaurant_search_view(request):
     else:
         print("No latitude/longitude found in query parameters.")
     
-    return render(request, 'foodmaster/restaurant_search.html', {'restaurants': restaurants})
+    context = {
+        'restaurants': restaurants,
+        'google_api_key': settings.GOOGLE_PLACES_API_KEY,
+    }
+    
+    return render(request, 'foodmaster/restaurant_search.html', context)
+
 
 
