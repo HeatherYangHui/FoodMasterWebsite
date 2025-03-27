@@ -37,55 +37,6 @@
         <!-- Check if we have any restaurants to display -->
         {% if restaurants %}
           {% for restaurant in restaurants %}
-          <!-- <div class="restaurant-card">
-            {% if restaurant.photo_url %}
-              <img src="{{ restaurant.photo_url }}" alt="Restaurant Image" style="width: 80px; height: 80px; object-fit: cover;">
-            {% else %}
-              <div class="restaurant-img">🍕</div>
-            {% endif %}
-            
-            <div class="restaurant-info"> -->
-              
-              <!-- Restaurant Name -->
-              <!-- <h4>{{ restaurant.name.text }}</h4> -->
-              
-              <!-- Rating and (optionally) number of reviews -->
-              <!-- {% if restaurant.rating %} 
-                <div>
-                  ⭐ {{ restaurant.rating }}
-                  {% if restaurant.userRatingCount %}
-                    ({{ restaurant.userRatingCount }} reviews)
-                  {% endif %}
-                </div>
-              {% else %}
-                <div>No rating</div>
-              {% endif %} -->
-              
-              <!-- Price Level (example: $ or $$ or $$$, etc.) -->
-              <!-- {% if restaurant.priceLevel %} 
-                <div>
-                  Price Level: 
-                  {% for i in "x"|slice:restaurant.priceLevel %}
-                    $
-                  {% endfor %}
-                </div>
-              {% endif %} -->
-              
-              <!-- Address -->
-              <!-- <div>{{ restaurant.address }}</div> -->
-              
-              <!-- Display categories/types if available -->
-              <!-- {% if restaurant.types %}
-                <div>
-                  <strong>Category:</strong>
-                  {% for t in restaurant.types %}
-                    {{ t }}{% if not forloop.last %}, {% endif %}
-                  {% endfor %}
-                </div>
-              {% endif %}
-              
-            </div> -->
-          <!-- </div> --> 
           <div class="restaurant-card">
             {% if restaurant.photo_url %}
               <img src="{{ restaurant.photo_url }}" alt="Restaurant Image" style="width: 135px; height:135px; object-fit: cover;">
@@ -124,8 +75,6 @@
               {% endif %}
             </div>
           </div>
-          
-          
           {% endfor %}
         {% else %}
           <p>No restaurants found near your location.</p>
