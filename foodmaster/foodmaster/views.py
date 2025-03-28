@@ -211,16 +211,37 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 
 
 # helper function to get nearby restaurants
-def get_nearby_restaurants(lat, lng, radius=500):
+def get_nearby_restaurants(lat, lng, radius=500, cuisine=None):
     endpoint = "https://places.googleapis.com/v1/places:searchNearby"
     headers = {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": settings.GOOGLE_PLACES_API_KEY,
-        # Request photo data by including places.photos in the field mask
-        "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location,places.types,places.rating,places.photos"
+        "X-Goog-FieldMask": (
+            "places.displayName,places.formattedAddress,places.location,"
+            "places.types,places.rating,places.photos,places.priceLevel,"
+            "places.userRatingCount"
+        )
     }
+    
+    # Define a mapping from filter input to Places API type
+    cuisine_map = {
+        "italian": "italian_restaurant",
+        "chinese": "chinese_restaurant",
+        "american": "american_restaurant",
+        "japanese": "japanese_restaurant",
+        "mexican": "mexican_restaurant",
+    }
+    
+    # Set the includedTypes based on the cuisine filter.
+    if cuisine:
+        cuisine_key = cuisine.lower()
+        included_types = [cuisine_map[cuisine_key]] if cuisine_key in cuisine_map else ["restaurant"]
+    else:
+        included_types = ["restaurant"]
+    
     payload = {
-        "includedTypes": ["restaurant"],
+        #"includedPrimaryTypes": ["restaurant"],
+        "includedTypes": included_types,
         "maxResultCount": 10,
         "locationRestriction": {
             "circle": {
@@ -232,58 +253,131 @@ def get_nearby_restaurants(lat, lng, radius=500):
             }
         }
     }
+    print(payload)
+
     response = requests.post(endpoint, headers=headers, json=payload)
     data = response.json()
     restaurants = []
     if "places" in data:
         for place in data["places"]:
             display_name = place.get("displayName")
+            print(display_name)
             rating = place.get("rating", "N/A")
             address = place.get("formattedAddress", "No address provided")
             photo_url = None
+            price_level = place.get("priceLevel")
+            user_rating_count = place.get("userRatingCount")
+            types = place.get("types", [])
+
             photos_data = place.get("photos", [])
             if photos_data:
                 first_photo = photos_data[0]
-                # Use the new photo resource name from the "name" field
                 photo_resource = first_photo.get("name")
                 if photo_resource:
                     photo_url = (
                         f"https://places.googleapis.com/v1/{photo_resource}/media"
                         f"?maxHeightPx=400&maxWidthPx=400&key={settings.GOOGLE_PLACES_API_KEY}"
                     )
+            
             restaurants.append({
                 "name": {"text": display_name},
                 "rating": rating,
                 "address": address,
                 "photo_url": photo_url,
+                "priceLevel": price_level,
+                "userRatingCount": user_rating_count,
+                "types": types,
             })
+            print(price_level)
     else:
         print("No places found or error:", data.get("error", data))
     
     return restaurants
 
 
-
 def restaurant_search_view(request):
     lat = request.GET.get('lat')
     lng = request.GET.get('lng')
-    restaurants = []
+
+    # Get filter parameters
+    cuisine = request.GET.get('cuisine', '')    # e.g. "italian"
+    price = request.GET.get('price', '')        # e.g. "2"
+    distance = request.GET.get('distance', '')  # e.g. "2" => 2 miles
+    rating = request.GET.get('rating', '')      # e.g. "4.5"
+
+    # Convert miles to meters (approx 1609.34 meters per mile)
+    default_radius = 500  # fallback if distance is empty
+    try:
+        radius_meters = int(distance) * 1609 if distance else default_radius
+    except ValueError:
+        radius_meters = default_radius
+
+    restaurants = [] 
     
+    # Only call the API if lat/lng exist
     if lat and lng:
         try:
             user_lat = float(lat)
             user_lng = float(lng)
-            restaurants = get_nearby_restaurants(user_lat, user_lng)
+            # Pass radius and cuisine to the function
+            restaurants = get_nearby_restaurants(
+                user_lat,
+                user_lng,
+                radius=radius_meters,
+                cuisine=cuisine,
+            )
         except ValueError:
             print("Error: Latitude or longitude could not be converted to float.")
     else:
         print("No latitude/longitude found in query parameters.")
     
+    # -------------------------------
+    # Additional Python-side filtering
+    # -------------------------------
+
+    # 1) Filter by rating
+    if rating:
+        # Convert rating string (e.g. "4.5") to float
+        try:
+            min_rating = float(rating)
+            filtered = []
+            for r in restaurants:
+                if r["rating"] != "N/A":
+                    try:
+                        if float(r["rating"]) >= min_rating:
+                            filtered.append(r)
+                    except ValueError:
+                        pass
+            restaurants = filtered
+        except ValueError:
+            pass  # ignore if rating can't convert
+
+    # 2) Filter by price
+    if price:
+        if price == "1":
+            filter_price_level = "PRICE_LEVEL_INEXPENSIVE"
+        elif price == "2":
+            filter_price_level = "PRICE_LEVEL_MODERATE"
+        elif price == "3":
+            filter_price_level = "PRICE_LEVEL_EXPENSIVE"
+        else:
+            filter_price_level = "PRICE_LEVEL_VERY_EXPENSIVE"
+            
+        try:
+            price_level = filter_price_level
+            restaurants = [
+                r for r in restaurants
+                if r.get("priceLevel") == price_level
+            ]
+        except ValueError:
+            pass
+
     context = {
         'restaurants': restaurants,
         'google_api_key': settings.GOOGLE_PLACES_API_KEY,
+        'lat': lat,
+        'lng': lng,
     }
-    
     return render(request, 'foodmaster/restaurant_search.html', context)
 
 
