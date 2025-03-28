@@ -24,17 +24,26 @@
         <div class="social-feed">
           {% if posts %}
             {% for post in posts %}
-            <div class="post" data-post-id="{{ post.id }}">
+            <div class="post" id="post-{{ post.id }}" data-post-id="{{ post.id }}">
               <div class="post-header">
                 <div class="post-avatar">👤</div>
-                <div>
+                <div style="flex: 1;">
                   <div style="font-weight: bold;">{{ post.author }}</div>
                   <div style="font-size: 12px; color: #666;">{{ post.time_ago }} • {{ post.category }}</div>
                 </div>
+                {% if request.user != post.author %}
+                  <button class="btn btn-secondary btn-sm follow-btn" data-profile-id="{{ post.author.profile.id }}" onclick="toggleFollow(this)">
+                    {% if request.user in post.author.profile.followers.all %}
+                      Unfollow
+                    {% else %}
+                      Follow
+                    {% endif %}
+                  </button>
+                {% endif %}
               </div>
               <div class="post-image">
                 {% if post.photo %}
-                  <img src="{{ post.photo.url }}" alt="Post Photo" style="max-width: 100%; height: 100%;">
+                  <img src="{{ post.photo.url }}" loading="lazy" alt="Post Photo" style="max-width: 100%; height: 100%;">
                 {% else %}
                   [Food Photo]
                 {% endif %}
@@ -56,11 +65,15 @@
                   {% endif %}
                 </button>
                 <span class="like-count">{{ post.total_likes }} Likes</span>
-                <span class="comment-count">{{ post.comments.count }} Comments</span>
+                <span class="comment-count">{{ post.comments.count }} 💬Comments</span>
                 <div>🔗 Share</div>
+                {% if post.author == request.user %}
+                    <button onclick="deletePost(this)" class="btn btn-danger btn-sm" style="float: right;">🗑️ Delete</button>
+                {% endif %}
               </div>
-              <!-- 评论列表 -->
-              <div class="comments" data-post-id="{{ post.id }}" style="margin-top: 15px;">
+              <button class="toggle-comments-btn" onclick="toggleComments(this)"> Show Comments</button>
+              <!-- comment list -->
+              <div class="comments" data-post-id="{{ post.id }}" style="margin-top: 15px; display: none;">
                 {% for comment in post.comments.all %}
                   <div class="comment" style="margin-bottom: 10px;">
                     <strong>{{ comment.author.username }}</strong>: {{ comment.content }}
@@ -72,7 +85,7 @@
                 {% endfor %}
               </div>
 
-              <!-- 评论表单：使用 AJAX 提交 -->
+              <!-- submit commet use ajax -->
               <form class="comment-form" data-post-id="{{ post.id }}" onsubmit="addComment(event, this)" style="margin-top: 10px;">
                 {% csrf_token %}
                 <input type="text" name="content" placeholder="Add a comment..." style="width: 80%;">
@@ -90,26 +103,26 @@
           <div style="display: flex; margin-bottom: 15px;">
             <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #f0f0f0; margin-right: 15px; display: flex; align-items: center; justify-content: center;">👤</div>
             <div>
-              <div style="font-weight: bold;">{{ user.full_name|default:"John Doe" }}</div>
-              <div style="font-size: 14px; color: #666;">@{{ user.username|default:"johndoe" }}</div>
+              <div style="font-weight: bold;">{{ user.username }}</div>
+              <div style="font-size: 14px; color: #666;">@{{ user.username }}</div>
               <div style="font-size: 14px; margin-top: 5px;">{{ user.bio|default:"Food enthusiast & home cook" }}</div>
             </div>
           </div>
           <div style="display: flex; gap: 15px; margin-bottom: 15px;">
             <div>
-              <div style="font-weight: bold;">{{ user.posts_count|default:"24" }}</div>
+              <div style="font-weight: bold;">{{ user.post_set.count }}</div>
               <div style="font-size: 12px; color: #666;">Posts</div>
             </div>
             <div>
-              <div style="font-weight: bold;">{{ user.followers_count|default:"156" }}</div>
+              <div style="font-weight: bold;">{{ user.profile.followers.count }}</div>
               <div style="font-size: 12px; color: #666;">Followers</div>
             </div>
             <div>
-              <div style="font-weight: bold;">{{ user.following_count|default:"98" }}</div>
+              <div style="font-weight: bold;">{{ user.following_profiles.count }}</div>
               <div style="font-size: 12px; color: #666;">Following</div>
             </div>
           </div>
-          <button class="btn btn-secondary" style="width: 100%;">Edit Profile</button>
+          <a href="{% url 'profile' %}"><button class="btn btn-secondary" style="width: 100%;">Edit Profile</button></a>
         </div>
         
         <div style="background-color: white; border-radius: 8px; border: 1px solid #eee; padding: 15px; margin-bottom: 20px;">
@@ -126,44 +139,40 @@
         
         <div style="background-color: white; border-radius: 8px; border: 1px solid #eee; padding: 15px;">
           <h4>Suggested Users</h4>
-          
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <div style="display: flex; align-items: center;">
-              <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #f0f0f0; margin-right: 10px; display: flex; align-items: center; justify-content: center;">👤</div>
-              <div>
-                <div style="font-weight: bold;">Chef Maria</div>
-                <div style="font-size: 12px; color: #666;">@chef_maria</div>
+          {% if suggested_users %}
+            {% for suggested in suggested_users %}
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <div style="display: flex; align-items: center;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #f0f0f0; margin-right: 10px; display: flex; align-items: center; justify-content: center;">
+                  {% if suggested.profile_image %}
+                    <img src="{{ suggested.profile_image.url }}" alt="Profile Image" style="width: 100%; height: 100%; border-radius: 50%;">
+                  {% else %}
+                    👤
+                  {% endif %}
+                </div>
+                <div>
+                  <div style="font-weight: bold;">{{ suggested.user.username }}</div>
+                  <div style="font-size: 12px; color: #666;">@{{ suggested.user.username }}</div>
+                </div>
               </div>
+              <button class="btn btn-secondary follow-btn" data-profile-id="{{ suggested.id }}" onclick="toggleFollow(this)">
+                {% if request.user in suggested.followers.all %}
+                  Unfollow
+                {% else %}
+                  Follow
+                {% endif %}
+              </button>
             </div>
-            <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Follow</button>
-          </div>
-          
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <div style="display: flex; align-items: center;">
-              <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #f0f0f0; margin-right: 10px; display: flex; align-items: center; justify-content: center;">👤</div>
-              <div>
-                <div style="font-weight: bold;">Food Explorer</div>
-                <div style="font-size: 12px; color: #666;">@foodie_adventures</div>
-              </div>
-            </div>
-            <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Follow</button>
-          </div>
-          
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center;">
-              <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #f0f0f0; margin-right: 10px; display: flex; align-items: center; justify-content: center;">👤</div>
-              <div>
-                <div style="font-weight: bold;">Baking Queen</div>
-                <div style="font-size: 12px; color: #666;">@baking_queen</div>
-              </div>
-            </div>
-            <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Follow</button>
-          </div>
+            {% endfor %}
+          {% else %}
+            <div>No suggested users available.</div>
+          {% endif %}
         </div>
       </div>
     </div>
   </div>
 </div>
+
 
 
 <!-- JavaScript for AJAX operations -->
@@ -225,5 +234,75 @@
     })
     .catch(error => console.error('Error:', error));
   }
+
+  function toggleComments(button) {
+    const postElement = button.closest('.post');
+    const commentsSection = postElement.querySelector('.comments');
+    if (commentsSection.style.display === 'none') {
+      commentsSection.style.display = 'block';
+      button.textContent = '💬 Hide Comments';
+    } else {
+      commentsSection.style.display = 'none';
+      button.textContent = '💬 Show Comments';
+    }
+  }
+  
+  function deletePost(buttonElement) {
+  if (!confirm("Are you sure you want to delete this post?")) return;
+  const postElement = buttonElement.closest('.post');
+  const postId = postElement.dataset.postId;
+
+  fetch(`/posts/${postId}/delete/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      postElement.remove();
+    } else {
+      alert(data.error || 'Delete failed.');
+    }
+  });
+}
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function toggleFollow(buttonElement) {
+    const profileId = buttonElement.dataset.profileId;
+    fetch(`/ajax/follow/${profileId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrftoken,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        buttonElement.textContent = data.is_following ? 'Unfollow' : 'Follow';
+      } else {
+        alert('Error: ' + data.error);
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+
 </script>
 {% endblock %}

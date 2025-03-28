@@ -16,6 +16,7 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D  # Distance
 from .models import Restaurant
 from .models import Post
+from .models import Profile
 
 from django.views.decorators.http import require_POST
 from .models import Comment
@@ -26,8 +27,10 @@ from django.shortcuts import get_object_or_404, redirect
 import math
 import requests
 from django.conf import settings
-
-
+from PIL import Image
+from io import BytesIO
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import sys
 
 # -----------------------------
 # Login View
@@ -67,7 +70,13 @@ def register_view(request):
         user.first_name = full_name
         user.save()
 
-        # Log the user in and specify the backend
+        # Automatically create a Profile tied to this new user
+        Profile.objects.create(
+            user=user,
+            full_name=full_name  # Optionally set other fields
+        )
+
+        # Log the user in
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         return redirect('dashboard')
     else:
@@ -294,6 +303,26 @@ def create_post_view(request):
         category = request.POST.get('category', '')
         tags = request.POST.get('tags', '')
         photo = request.FILES.get('photo')
+        if photo:
+            try:
+                image = Image.open(photo)
+                image.thumbnail((1024, 1024))
+
+                image_io = BytesIO()
+                image_format = image.format if image.format else 'JPEG'
+                image.save(image_io, format=image_format)
+                # compress img when uploading to cut down latency
+                # Create new InMemoryUploadedFile
+                photo = InMemoryUploadedFile(
+                    image_io,       # file
+                    'photo',        # field name
+                    photo.name,     # file name
+                    f'image/{image_format.lower()}',  # content_type
+                    image_io.tell(),# size
+                    None            # charset
+                )
+            except Exception as e:
+                print("Image processing error:", e)
         if tags:
             tags_list = [tag.strip() for tag in tags.split(',')]
         else:
@@ -352,7 +381,6 @@ def like_post_ajax(request, post_id):
         post = get_object_or_404(Post, id=post_id)
         user = request.user
         
-        # 判断用户是否已点赞
         liked = user in post.likes.all()
         if liked:
             post.likes.remove(user)
@@ -361,8 +389,47 @@ def like_post_ajax(request, post_id):
         
         return JsonResponse({
             'success': True,
-            'liked': not liked,  # 点完之后是已点赞吗？
+            'liked': not liked, 
             'likes_count': post.likes.count()
         })
     else:
         return JsonResponse({'success': False, 'error': 'Invalid method'}, status=400)
+
+
+@login_required
+def delete_post_ajax(request, post_id):
+    """
+    AJAX endpoint for deleting a post.
+    Returns JSON with success status.
+    """
+    if request.method == 'POST':
+        post = get_object_or_404(Post, id=post_id)
+        if post.author == request.user:
+            post.delete()
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'error': 'You do not have permission to delete this post.'}, status=403)
+    else:
+        return JsonResponse({'success': False, 'error': 'Invalid method'}, status=400)
+
+
+@login_required
+def toggle_follow(request, profile_id):
+    profile = get_object_or_404(Profile, id=profile_id)
+    current_user = request.user
+
+    if profile.user == current_user:
+        return JsonResponse({'success': False, 'error': "You cannot follow yourself."}, status=400)
+
+    if current_user in profile.followers.all():
+        profile.followers.remove(current_user)
+        is_following = False
+    else:
+        profile.followers.add(current_user)
+        is_following = True
+
+    return JsonResponse({
+        'success': True,
+        'is_following': is_following,
+        'followers_count': profile.followers.count()
+    })

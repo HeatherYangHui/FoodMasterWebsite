@@ -22,6 +22,8 @@ from django.conf.urls.static import static
 from django.urls import path, include
 
 
+
+
 app_name = "foodmaster"
 
 urlpatterns = [
@@ -54,6 +56,8 @@ urlpatterns = [
     path('create_post/', views.create_post_view, name='create_post'),
     path('ajax/like/<int:post_id>/', views.like_post_ajax, name='like_post_ajax'),
     path('ajax/comment/<int:post_id>/', views.add_comment_ajax, name='add_comment_ajax'),
+    path('posts/<int:post_id>/delete/', views.delete_post_ajax, name='delete_post'),
+    path('ajax/follow/<int:profile_id>/', views.toggle_follow, name='toggle_follow'),
 ]
 
 
