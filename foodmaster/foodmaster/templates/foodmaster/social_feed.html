@@ -76,8 +76,8 @@
                   <span class="like-count" style="font-size: 14px; color: #666;">{{ post.total_likes }} Likes</span>
                 </div>
                 
-                <span class="comment-count" style="font-size: 14px; color: #666; display: flex; align-items: center; gap: 4px;">
-                  <span style="font-size: 18px;">💬</span> {{ post.comments.count }} Comments
+                <span class="comment-count" onclick="toggleComments(this)" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: #666;">
+                  <span style="font-size: 18px;">💬</span><span class="toggle-text"></span> {{ post.comments.count }} Comments
                 </span>
                 
                 {% if post.author == request.user %}
@@ -86,11 +86,6 @@
                   </button>
                 {% endif %}
               </div>
-              
-              <button class="toggle-comments-btn" onclick="toggleComments(this)" 
-                style="width: 100%; background-color: #f9f9f9; border: none; border-top: 1px solid #f0f0f0; padding: 12px; text-align: center; font-size: 14px; color: #666; cursor: pointer; transition: background-color 0.2s;">
-                Show Comments
-              </button>
               
               <!-- comment list -->
               <div class="comments" data-post-id="{{ post.id }}" style="padding: 0 20px; display: none; background-color: #fcfcfc;">
@@ -117,7 +112,7 @@
                 <input type="text" name="content" placeholder="Add a comment..." 
                   style="flex: 1; padding: 10px 14px; border: 1px solid #e1e4e8; border-radius: 20px; font-size: 14px; outline: none; transition: border 0.2s;">
                 <button type="submit" 
-                  style="background-color: #4CAF50; color: white; border: none; border-radius: 20px; padding: 8px 16px; font-size: 14px; cursor: pointer; transition: background-color 0.2s;">
+                  style="background-color: #a4dda6; color: white; border: none; border-radius: 20px; padding: 8px 16px; font-size: 14px; cursor: pointer; transition: background-color 0.2s;">
                   Comment
                 </button>
               </form>
@@ -231,50 +226,70 @@
   }
   
   function addComment(event, formElement) {
-    event.preventDefault();
-    const postId = formElement.dataset.postId;
-    const contentInput = formElement.querySelector('input[name="content"]');
-    const contentValue = contentInput.value;
-    
-    fetch(`/ajax/comment/${postId}/`, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': csrftoken,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: new URLSearchParams({ 'content': contentValue })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        contentInput.value = '';
-        const parent = formElement.parentElement;
-        const commentCountSpan = parent.querySelector('.comment-count');
-        commentCountSpan.textContent = data.comments_count + ' Comments';
-        const commentsContainer = parent.querySelector('.comments');
-        const newCommentDiv = document.createElement('div');
-        newCommentDiv.classList.add('comment');
-        newCommentDiv.style.marginBottom = '10px';
-        newCommentDiv.innerHTML = `<strong>${data.author}</strong>: ${data.content}`;
-        commentsContainer.appendChild(newCommentDiv);
-      } else {
-        alert('Error adding comment: ' + data.error);
-      }
-    })
-    .catch(error => console.error('Error:', error));
-  }
+  event.preventDefault();
+  const postId = formElement.dataset.postId;
+  const contentInput = formElement.querySelector('input[name="content"]');
+  const contentValue = contentInput.value;
 
-  function toggleComments(button) {
-    const postElement = button.closest('.post');
-    const commentsSection = postElement.querySelector('.comments');
-    if (commentsSection.style.display === 'none') {
-      commentsSection.style.display = 'block';
-      button.textContent = '💬 Hide Comments';
+  fetch(`/ajax/comment/${postId}/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': csrftoken,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: new URLSearchParams({ 'content': contentValue })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Clear input
+      contentInput.value = '';
+      // Find comment-count and comments container in the same post
+      const postElement = formElement.closest('.post');
+      const commentCountSpan = postElement.querySelector('.comment-count');
+      const commentsContainer = postElement.querySelector('.comments');
+
+      // Update comment count
+      commentCountSpan.textContent = data.comments_count + ' Comments';
+
+      // Append new comment
+      const newCommentDiv = document.createElement('div');
+      newCommentDiv.innerHTML = `
+        <div class="comment" style="padding: 16px 0; border-bottom: 1px solid #f0f0f0;">
+          <div style="display: flex; gap: 8px; align-items: flex-start;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #f0f8ff; display: flex; align-items: center; justify-content: center; font-size: 14px;">👤</div>
+            <div>
+              <div style="font-weight: 600; font-size: 14px; color: #333;">${data.author}</div>
+              <div style="font-size: 14px; color: #333; margin-top: 4px;">${data.content}</div>
+              <div style="font-size: 12px; color: #999; margin-top: 4px;">${data.created_at}</div>
+            </div>
+          </div>
+        </div>
+      `;
+      commentsContainer.appendChild(newCommentDiv.firstElementChild);
     } else {
-      commentsSection.style.display = 'none';
-      button.textContent = '💬 Show Comments';
+      alert('Error adding comment: ' + data.error);
+    }
+  })
+  .catch(error => console.error('Error:', error));
+}
+
+  function toggleComments(triggerElement) {
+  const postElement = triggerElement.closest('.post');
+  const commentsSection = postElement.querySelector('.comments');
+  const toggleText = triggerElement.querySelector('.toggle-text');
+  if (!commentsSection.style.display || commentsSection.style.display === 'none') {
+    commentsSection.style.display = 'block';
+    if (toggleText) {
+      toggleText.textContent = ' Hide';
+    }
+  } else {
+    commentsSection.style.display = 'none';
+    if (toggleText) {
+      toggleText.textContent = '';
     }
   }
+}
   
   function deletePost(buttonElement) {
   if (!confirm("Are you sure you want to delete this post?")) return;
