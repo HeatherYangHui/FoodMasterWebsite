@@ -17,6 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from foodmaster import views
+from django.conf import settings
+from django.conf.urls.static import static
+from django.urls import path, include
 
 
 app_name = "foodmaster"
@@ -47,5 +50,12 @@ urlpatterns = [
 
     path('profile/', views.profile_view, name='profile'),
     path('logout/', views.logout_view, name='logout'),
-    
+    path('social/', views.social_feed_view, name='social_feed'),
+    path('create_post/', views.create_post_view, name='create_post'),
+    path('ajax/like/<int:post_id>/', views.like_post_ajax, name='like_post_ajax'),
+    path('ajax/comment/<int:post_id>/', views.add_comment_ajax, name='add_comment_ajax'),
 ]
+
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

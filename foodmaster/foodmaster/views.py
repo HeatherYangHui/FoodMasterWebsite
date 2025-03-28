@@ -15,6 +15,13 @@ from django.contrib.auth import logout
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D  # Distance
 from .models import Restaurant
+from .models import Post
+
+from django.views.decorators.http import require_POST
+from .models import Comment
+
+
+from django.shortcuts import get_object_or_404, redirect
 
 import math
 import requests
@@ -271,4 +278,91 @@ def restaurant_search_view(request):
     return render(request, 'foodmaster/restaurant_search.html', context)
 
 
+# -----------------------------
+# Social Feed View
+# -----------------------------
+def social_feed_view(request):
+    posts = Post.objects.all().order_by('-created_at')
+    return render(request, 'foodmaster/social_feed.html', {'posts': posts})
 
+
+
+@login_required
+def create_post_view(request):
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        category = request.POST.get('category', '')
+        tags = request.POST.get('tags', '')
+        photo = request.FILES.get('photo')
+        if tags:
+            tags_list = [tag.strip() for tag in tags.split(',')]
+        else:
+            tags_list = []
+        # Create a new Post instance
+        Post.objects.create(
+            author=request.user,
+            content=content,
+            category=category,
+            tags=tags_list,
+            photo=photo
+        )
+        return redirect('social_feed')
+    return render(request, 'foodmaster/create_post.html')
+
+
+
+@login_required
+def add_comment_ajax(request, post_id):
+    """
+    AJAX endpoint for adding a comment to a post.
+    Returns JSON with the newly created comment or an error.
+    """
+    if request.method == 'POST':
+        post = get_object_or_404(Post, id=post_id)
+        content = request.POST.get('content')  # 或者 JSON 方式获取
+        if content:
+            new_comment = Comment.objects.create(
+                post=post,
+                author=request.user,
+                content=content
+            )
+            return JsonResponse({
+                'success': True,
+                'comment_id': new_comment.id,
+                'author': new_comment.author.username,
+                'content': new_comment.content,
+                'created_at': new_comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'comments_count': post.comments.count()
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Empty content'}, status=400)
+    else:
+        return JsonResponse({'success': False, 'error': 'Invalid method'}, status=400)
+
+
+from django.http import JsonResponse
+
+@login_required
+def like_post_ajax(request, post_id):
+    """
+    AJAX endpoint for toggling 'like' on a post.
+    Returns JSON with updated like info.
+    """
+    if request.method == 'POST':
+        post = get_object_or_404(Post, id=post_id)
+        user = request.user
+        
+        # 判断用户是否已点赞
+        liked = user in post.likes.all()
+        if liked:
+            post.likes.remove(user)
+        else:
+            post.likes.add(user)
+        
+        return JsonResponse({
+            'success': True,
+            'liked': not liked,  # 点完之后是已点赞吗？
+            'likes_count': post.likes.count()
+        })
+    else:
+        return JsonResponse({'success': False, 'error': 'Invalid method'}, status=400)

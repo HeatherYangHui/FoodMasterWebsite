@@ -4,31 +4,15 @@
 
 {% block content %}
 <div class="wireframe-section">
-  <div class="wireframe">
-    <div class="navbar">
-      <div class="logo">Food Master</div>
-      <div class="search-bar">Search social posts...</div>
-      <div class="nav-menu">
-        <div class="nav-link">Home</div>
-        <div class="nav-link">Discover</div>
-        <div class="nav-link">Cook&Home</div>
-        <div class="nav-link active">Social</div>
-        <div class="nav-link">Saved</div>
-      </div>
-      <div class="user-menu">
-        <div class="user-avatar">👤</div>
-      </div>
-    </div>
-    
+
     <div class="split-content">
       <div class="main-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
           <h3>Food Community</h3>
-          <button class="btn btn-primary">Create Post</button>
+          <a href="{% url 'create_post' %}"><button class="btn btn-primary">Create Post</button></a>
         </div>
         
         <div class="filters">
-          <div class="filter-chip">All Posts</div>
           <div class="filter-chip">Following</div>
           <div class="filter-chip">Trending</div>
           <div class="filter-chip">Breakfast</div>
@@ -40,7 +24,7 @@
         <div class="social-feed">
           {% if posts %}
             {% for post in posts %}
-            <div class="post">
+            <div class="post" data-post-id="{{ post.id }}">
               <div class="post-header">
                 <div class="post-avatar">👤</div>
                 <div>
@@ -49,7 +33,11 @@
                 </div>
               </div>
               <div class="post-image">
-                [Food Photo]
+                {% if post.photo %}
+                  <img src="{{ post.photo.url }}" alt="Post Photo" style="max-width: 100%; height: 100%;">
+                {% else %}
+                  [Food Photo]
+                {% endif %}
               </div>
               <div style="padding: 15px;">
                 <p>{{ post.content }}</p>
@@ -60,91 +48,42 @@
                 </div>
               </div>
               <div class="post-actions">
-                <div>❤️ {{ post.likes }} Likes</div>
-                <div>💬 {{ post.comments }} Comments</div>
+                <button class="like-btn" data-post-id="{{ post.id }}" onclick="toggleLike(this)">
+                  {% if request.user in post.likes.all %}
+                    ❤️
+                  {% else %}
+                    🤍
+                  {% endif %}
+                </button>
+                <span class="like-count">{{ post.total_likes }} Likes</span>
+                <span class="comment-count">{{ post.comments.count }} Comments</span>
                 <div>🔗 Share</div>
               </div>
+              <!-- 评论列表 -->
+              <div class="comments" data-post-id="{{ post.id }}" style="margin-top: 15px;">
+                {% for comment in post.comments.all %}
+                  <div class="comment" style="margin-bottom: 10px;">
+                    <strong>{{ comment.author.username }}</strong>: {{ comment.content }}
+                    <br>
+                    <small style="color: #666;">{{ comment.created_at|date:'M d, Y H:i' }}</small>
+                  </div>
+                {% empty %}
+                  <div>No comments yet.</div>
+                {% endfor %}
+              </div>
+
+              <!-- 评论表单：使用 AJAX 提交 -->
+              <form class="comment-form" data-post-id="{{ post.id }}" onsubmit="addComment(event, this)" style="margin-top: 10px;">
+                {% csrf_token %}
+                <input type="text" name="content" placeholder="Add a comment..." style="width: 80%;">
+                <button type="submit" class="btn btn-secondary" style="padding: 6px 12px;">Comment</button>
+              </form>
             </div>
             {% endfor %}
-          {% else %}
-            <div class="post">
-              <div class="post-header">
-                <div class="post-avatar">👤</div>
-                <div>
-                  <div style="font-weight: bold;">Sarah Johnson</div>
-                  <div style="font-size: 12px; color: #666;">2 hours ago • Dinner</div>
-                </div>
-              </div>
-              <div class="post-image">
-                [Food Photo]
-              </div>
-              <div style="padding: 15px;">
-                <p>Made this amazing homemade pasta carbonara tonight! The recipe was super easy to follow, and it turned out delicious. Definitely going to make this again!</p>
-                <div style="font-size: 12px; color: #4CAF50; margin-top: 10px;">
-                  <span>🍝 Spaghetti Carbonara</span> • 
-                  <span>🏠 Homemade</span>
-                </div>
-              </div>
-              <div class="post-actions">
-                <div>❤️ 45 Likes</div>
-                <div>💬 12 Comments</div>
-                <div>🔗 Share</div>
-              </div>
-            </div>
-            
-            <div class="post">
-              <div class="post-header">
-                <div class="post-avatar">👤</div>
-                <div>
-                  <div style="font-weight: bold;">Mike Chen</div>
-                  <div style="font-size: 12px; color: #666;">Yesterday • Lunch</div>
-                </div>
-              </div>
-              <div class="post-image">
-                [Restaurant Photo]
-              </div>
-              <div style="padding: 15px;">
-                <p>Found this amazing new sushi place downtown! The fish was incredibly fresh, and they have some really creative rolls. Highly recommend the dragon roll and the spicy tuna!</p>
-                <div style="font-size: 12px; color: #4CAF50; margin-top: 10px;">
-                  <span>🍣 Sushi Delight</span> • 
-                  <span>📍 Downtown</span>
-                </div>
-              </div>
-              <div class="post-actions">
-                <div>❤️ 87 Likes</div>
-                <div>💬 23 Comments</div>
-                <div>🔗 Share</div>
-              </div>
-            </div>
-            
-            <div class="post">
-              <div class="post-header">
-                <div class="post-avatar">👤</div>
-                <div>
-                  <div style="font-weight: bold;">Emily Davis</div>
-                  <div style="font-size: 12px; color: #666;">3 days ago • Dessert</div>
-                </div>
-              </div>
-              <div class="post-image">
-                [Dessert Photo]
-              </div>
-              <div style="padding: 15px;">
-                <p>Tried out this chocolate lava cake recipe for the first time, and it was a hit! The center was perfectly gooey, and it paired so well with vanilla ice cream. Let me know if you want the recipe!</p>
-                <div style="font-size: 12px; color: #4CAF50; margin-top: 10px;">
-                  <span>🍰 Chocolate Lava Cake</span> • 
-                  <span>🏠 Homemade</span>
-                </div>
-              </div>
-              <div class="post-actions">
-                <div>❤️ 124 Likes</div>
-                <div>💬 45 Comments</div>
-                <div>🔗 Share</div>
-              </div>
-            </div>
           {% endif %}
         </div>
       </div>
-      
+
       <div class="sidebar">
         <div style="background-color: white; border-radius: 8px; border: 1px solid #eee; padding: 15px; margin-bottom: 20px;">
           <h4>Your Profile</h4>
@@ -225,4 +164,66 @@
     </div>
   </div>
 </div>
+
+
+<!-- JavaScript for AJAX operations -->
+<script>
+  const csrftoken = "{{ csrf_token }}";
+  
+  function toggleLike(buttonElement) {
+    const postId = buttonElement.dataset.postId;
+    fetch(`/ajax/like/${postId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrftoken,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        buttonElement.textContent = data.liked ? '❤️' : '🤍';
+        const likeCountSpan = buttonElement.parentElement.querySelector('.like-count');
+        likeCountSpan.textContent = data.likes_count + ' Likes';
+      } else {
+        alert('Error toggling like: ' + data.error);
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+  
+  function addComment(event, formElement) {
+    event.preventDefault();
+    const postId = formElement.dataset.postId;
+    const contentInput = formElement.querySelector('input[name="content"]');
+    const contentValue = contentInput.value;
+    
+    fetch(`/ajax/comment/${postId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrftoken,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: new URLSearchParams({ 'content': contentValue })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        contentInput.value = '';
+        const parent = formElement.parentElement;
+        const commentCountSpan = parent.querySelector('.comment-count');
+        commentCountSpan.textContent = data.comments_count + ' Comments';
+        const commentsContainer = parent.querySelector('.comments');
+        const newCommentDiv = document.createElement('div');
+        newCommentDiv.classList.add('comment');
+        newCommentDiv.style.marginBottom = '10px';
+        newCommentDiv.innerHTML = `<strong>${data.author}</strong>: ${data.content}`;
+        commentsContainer.appendChild(newCommentDiv);
+      } else {
+        alert('Error adding comment: ' + data.error);
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+</script>
 {% endblock %}

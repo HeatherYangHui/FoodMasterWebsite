@@ -175,3 +175,8 @@ GEOS_LIBRARY_PATH = '/opt/homebrew/Cellar/geos/3.13.1/lib/libgeos_c.dylib'
 
 
 GOOGLE_PLACES_API_KEY = 'AIzaSyCJ69ANDmjudhXk0wjWtDk7MDrdvx9OnRo'
+
+
+
+MEDIA_URL = '/media/' 
+MEDIA_ROOT = BASE_DIR / 'media' 
