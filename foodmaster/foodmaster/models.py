@@ -1,6 +1,7 @@
 from django.db import models
 
-# Create your models here.
+# Create your models here. 
+# test push
 class Restaurant(models.Model):
     name = models.CharField(max_length=255)
     cuisine = models.CharField(max_length=255)
