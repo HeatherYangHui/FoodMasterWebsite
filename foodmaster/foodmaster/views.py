@@ -253,7 +253,6 @@ def get_nearby_restaurants(lat, lng, radius=500, cuisine=None):
             }
         }
     }
-    print(payload)
 
     response = requests.post(endpoint, headers=headers, json=payload)
     data = response.json()
@@ -261,13 +260,17 @@ def get_nearby_restaurants(lat, lng, radius=500, cuisine=None):
     if "places" in data:
         for place in data["places"]:
             display_name = place.get("displayName")
-            print(display_name)
             rating = place.get("rating", "N/A")
             address = place.get("formattedAddress", "No address provided")
             photo_url = None
             price_level = place.get("priceLevel")
             user_rating_count = place.get("userRatingCount")
             types = place.get("types", [])
+
+            # Extract lat/lng from the "location" key
+            location_data = place.get("location", {})
+            place_lat = location_data.get("latitude")
+            place_lng = location_data.get("longitude")
 
             photos_data = place.get("photos", [])
             if photos_data:
@@ -287,8 +290,9 @@ def get_nearby_restaurants(lat, lng, radius=500, cuisine=None):
                 "priceLevel": price_level,
                 "userRatingCount": user_rating_count,
                 "types": types,
+                "latitude": place_lat,       # NEW: store lat
+                "longitude": place_lng,     # NEW: store lng
             })
-            print(price_level)
     else:
         print("No places found or error:", data.get("error", data))
     

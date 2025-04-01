@@ -85,15 +85,94 @@
     
     <!-- Sidebar with a placeholder map and filters -->
     <div class="sidebar">
-      <div class="map-container">
-        [Map View]
-      </div>
+      <div class="map-container" id="map" style="width: 100%; height: 400px;"></div>
+      <script>
+        function initMap() {
+          // Get user's lat/lng from template context
+          var userLat = parseFloat("{{ lat|default:'0' }}");
+          var userLng = parseFloat("{{ lng|default:'0' }}");
+      
+          // Create map with a default center/zoom
+          var map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: userLat, lng: userLng },
+            zoom: 14
+          });
+      
+          // Create a LatLngBounds object to auto-fit all markers
+          var bounds = new google.maps.LatLngBounds();
+          // Place a BLUE marker for the user's location (if valid)
+          if (userLat !== 0 && userLng !== 0) {
+            var userPos = { lat: userLat, lng: userLng };
+            var userMarker = new google.maps.Marker({
+              position: userPos,
+              map: map,
+              title: "You are here",
+              icon: {
+                url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+              }
+            });
+            bounds.extend(userPos);
+          }
+      
+          // Loop over restaurants and create markers
+          {% for r in restaurants %}
+            {% if r.latitude and r.longitude %}
+              (function() {
+                var markerPos = {
+                  lat: parseFloat("{{ r.latitude }}"),
+                  lng: parseFloat("{{ r.longitude }}")
+                };
+      
+                // Create the marker
+                var marker = new google.maps.Marker({
+                  position: markerPos,
+                  map: map,
+                  title: "{{ r.name.text.text|escapejs }}"
+                });
+      
+                // Optional: an InfoWindow with details
+                var infoContent = `
+                  <div style="min-width: 200px;">
+                    <strong>{{ r.name.text.text|escapejs }}</strong><br>
+                    Rating: {{ r.rating }}<br>
+                    Address: {{ r.address|escapejs }}
+                  </div>
+                `;
+                var infowindow = new google.maps.InfoWindow({ content: infoContent });
+                marker.addListener('click', function() {
+                  infowindow.open(map, marker);
+                });
+      
+                // Extend bounds so this marker is included in the viewport
+                bounds.extend(markerPos);
+              })();
+            {% endif %}
+          {% endfor %}
+      
+          // Fit the map to show all markers (user + restaurants)
+          if (bounds.getNorthEast().equals(bounds.getSouthWest())) {
+            // Means only have one marker or none
+            map.setZoom(14);
+            map.setCenter({ lat: userLat, lng: userLng });
+          } else {
+            // Otherwise, fit the bounds to include all markers
+            map.fitBounds(bounds);
+          }
+        }
+      </script>
+
+      <!-- Load the Google Maps JavaScript API -->
+      <script 
+        src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key }}&callback=initMap" 
+        async 
+        defer
+      ></script>
       
       <div style="background-color: #f9f9f9; border-radius: 8px; padding: 15px;">
         <h4>Filter Results</h4>
         
         <form method="get" action="{% url 'restaurant_search' %}">
-          <!-- 保留定位参数 -->
+          <!-- Store the location variable -->
           {% if lat and lng %}
             <input type="hidden" name="lat" value="{{ lat }}">
             <input type="hidden" name="lng" value="{{ lng }}">
