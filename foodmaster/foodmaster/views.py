@@ -258,7 +258,7 @@ def get_nearby_restaurants(lat, lng, radius=500, cuisine=None):
     data = response.json()
     restaurants = []
     if "places" in data:
-        for place in data["places"]:
+        for i, place in enumerate(data["places"]):
             display_name = place.get("displayName")
             rating = place.get("rating", "N/A")
             address = place.get("formattedAddress", "No address provided")
@@ -282,7 +282,11 @@ def get_nearby_restaurants(lat, lng, radius=500, cuisine=None):
                         f"?maxHeightPx=400&maxWidthPx=400&key={settings.GOOGLE_PLACES_API_KEY}"
                     )
             
+            # Use the enumerate index as a unique id (i+1)
+            restaurant_id = i + 1
+
             restaurants.append({
+                "id": restaurant_id,  # <-- Added unique restaurant id
                 "name": {"text": display_name},
                 "rating": rating,
                 "address": address,
@@ -290,8 +294,8 @@ def get_nearby_restaurants(lat, lng, radius=500, cuisine=None):
                 "priceLevel": price_level,
                 "userRatingCount": user_rating_count,
                 "types": types,
-                "latitude": place_lat,       # NEW: store lat
-                "longitude": place_lng,     # NEW: store lng
+                "latitude": place_lat,
+                "longitude": place_lng,
             })
     else:
         print("No places found or error:", data.get("error", data))
@@ -383,6 +387,34 @@ def restaurant_search_view(request):
         'lng': lng,
     }
     return render(request, 'foodmaster/restaurant_search.html', context)
+
+# -----------------------------
+# Restaurant Detail View
+# -----------------------------
+def restaurant_detail_view(request, restaurant_id):
+    """
+    Renders the restaurant detail page.
+    """
+    # Example placeholder:
+    restaurant = {
+        "id": restaurant_id,
+        "name": "Placeholder Restaurant",
+        "cuisine": "Italian",
+        "price_range": "$$",
+        "distance": "0.8",
+        "status": "Open • Closes at 10:00 PM",
+        "rating": "4.7",
+        "reviews": "324",
+        "description": "Placeholder description for this restaurant.",
+        "address": "123 Main Street, Anytown",
+        "phone": "(555) 123-4567",
+        "website": "www.mariospizza.com"
+    }
+
+    context = {
+        "restaurant": restaurant
+    }
+    return render(request, 'foodmaster/restaurant_detail.html', context)
 
 
 # -----------------------------
