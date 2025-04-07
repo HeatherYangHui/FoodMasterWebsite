@@ -217,7 +217,7 @@ def get_nearby_restaurants(lat, lng, radius=500, cuisine=None):
         "Content-Type": "application/json",
         "X-Goog-Api-Key": settings.GOOGLE_PLACES_API_KEY,
         "X-Goog-FieldMask": (
-            "places.displayName,places.formattedAddress,places.location,"
+            "places.id,places.displayName,places.formattedAddress,places.location,"
             "places.types,places.rating,places.photos,places.priceLevel,"
             "places.userRatingCount"
         )
@@ -258,7 +258,7 @@ def get_nearby_restaurants(lat, lng, radius=500, cuisine=None):
     data = response.json()
     restaurants = []
     if "places" in data:
-        for i, place in enumerate(data["places"]):
+        for place in data["places"]:
             display_name = place.get("displayName")
             rating = place.get("rating", "N/A")
             address = place.get("formattedAddress", "No address provided")
@@ -266,6 +266,8 @@ def get_nearby_restaurants(lat, lng, radius=500, cuisine=None):
             price_level = place.get("priceLevel")
             user_rating_count = place.get("userRatingCount")
             types = place.get("types", [])
+            # Extrace unique place id, preparing for details search
+            place_id = place.get("id")
 
             # Extract lat/lng from the "location" key
             location_data = place.get("location", {})
@@ -281,12 +283,9 @@ def get_nearby_restaurants(lat, lng, radius=500, cuisine=None):
                         f"https://places.googleapis.com/v1/{photo_resource}/media"
                         f"?maxHeightPx=400&maxWidthPx=400&key={settings.GOOGLE_PLACES_API_KEY}"
                     )
-            
-            # Use the enumerate index as a unique id (i+1)
-            restaurant_id = i + 1
 
             restaurants.append({
-                "id": restaurant_id,  # <-- Added unique restaurant id
+                "id": place_id,  # <-- Added unique restaurant id
                 "name": {"text": display_name},
                 "rating": rating,
                 "address": address,
@@ -391,13 +390,13 @@ def restaurant_search_view(request):
 # -----------------------------
 # Restaurant Detail View
 # -----------------------------
-def restaurant_detail_view(request, restaurant_id):
+def restaurant_detail_view(request, place_id):
     """
     Renders the restaurant detail page.
     """
     # Example placeholder:
     restaurant = {
-        "id": restaurant_id,
+        "id": place_id,
         "name": "Placeholder Restaurant",
         "cuisine": "Italian",
         "price_range": "$$",

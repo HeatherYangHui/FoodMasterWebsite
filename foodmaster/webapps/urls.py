@@ -59,7 +59,7 @@ urlpatterns = [
     path('posts/<int:post_id>/delete/', views.delete_post_ajax, name='delete_post'),
     path('ajax/follow/<int:profile_id>/', views.toggle_follow, name='toggle_follow'),
     # restaurant details view
-    path('restaurant/<int:restaurant_id>/', views.restaurant_detail_view, name='restaurant_detail'),
+    path('restaurant/<str:place_id>/', views.restaurant_detail_view, name='restaurant_detail'),
 ]
 
 
