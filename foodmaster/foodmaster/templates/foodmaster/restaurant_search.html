@@ -20,8 +20,7 @@
       <!-- Check if we have any restaurants to display -->
       {% if restaurants %}
         {% for restaurant in restaurants %}
-        <a href="{% url 'restaurant_detail' restaurant.id %}" 
-   style="text-decoration: none; color: inherit; display: block;">
+        <a href="{% url 'restaurant_detail' restaurant.id %}?lat={{ lat }}&lng={{ lng }}" style="text-decoration: none; color: inherit;">
           <div class="restaurant-card">
             {% if restaurant.photo_url %}
               <img src="{{ restaurant.photo_url }}" alt="Restaurant Image" style="width: 135px; height:135px; object-fit: cover;">

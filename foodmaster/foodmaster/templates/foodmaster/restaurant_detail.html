@@ -4,159 +4,225 @@
 
 {% block content %}
 <div class="wireframe-section">
-    
-    <div style="height: 300px; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
-      [Restaurant Hero Image]
-    </div>
-    
-    <div class="split-content">
-      <div class="main-content">
-        <h2>{% if restaurant %}{{ restaurant.name }}{% else %}Mario's Pizza{% endif %}</h2>
-        <div style="margin-bottom: 20px;">
-          <span>{% if restaurant %}{{ restaurant.cuisine }}{% else %}Italian{% endif %} • 
-          {% if restaurant %}{{ restaurant.price_range }}{% else %}$${% endif %} • 
-          {% if restaurant %}{{ restaurant.distance }}{% else %}0.8{% endif %} miles • </span>
-          <span style="color: #4CAF50;">{% if restaurant %}{{ restaurant.status }}{% else %}Open • Closes at 10:00 PM{% endif %}</span>
-        </div>
-        <div style="margin-bottom: 20px;">⭐ {% if restaurant %}{{ restaurant.rating }}{% else %}4.7{% endif %} 
-          ({% if restaurant %}{{ restaurant.reviews }}{% else %}324{% endif %} reviews)</div>
-        
-        <div style="display: flex; gap: 10px; margin-bottom: 30px;">
-          <button class="btn btn-primary">Make Reservation</button>
-          <button class="btn btn-secondary">View Menu</button>
-          <button class="btn btn-secondary">Save</button>
-          <button class="btn btn-secondary">Share</button>
-        </div>
-        
-        <div style="margin-bottom: 30px;">
-          <h3>About</h3>
-          <p>{% if restaurant %}{{ restaurant.description }}{% else %}Mario's Pizza serves authentic Italian pizza made with fresh ingredients in a wood-fired oven. Family owned since 1985, we pride ourselves on traditional recipes and warm hospitality.{% endif %}</p>
-        </div>
-        
-        <div style="margin-bottom: 30px;">
-          <h3>Location & Contact</h3>
-          <p>{% if restaurant %}{{ restaurant.address }}{% else %}123 Main Street, Anytown{% endif %}</p>
-          <p>Phone: {% if restaurant %}{{ restaurant.phone }}{% else %}(555) 123-4567{% endif %}</p>
-          <p>Website: {% if restaurant %}{{ restaurant.website }}{% else %}www.mariospizza.com{% endif %}</p>
-        </div>
-        
-        <div style="margin-bottom: 30px;">
-          <h3>Hours</h3>
-          <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="padding: 8px; border-bottom: 1px solid #eee;">Monday</td>
-              <td style="padding: 8px; border-bottom: 1px solid #eee;">11:00 AM - 10:00 PM</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px; border-bottom: 1px solid #eee;">Tuesday</td>
-              <td style="padding: 8px; border-bottom: 1px solid #eee;">11:00 AM - 10:00 PM</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px; border-bottom: 1px solid #eee;">Wednesday</td>
-              <td style="padding: 8px; border-bottom: 1px solid #eee;">11:00 AM - 10:00 PM</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px; border-bottom: 1px solid #eee;">Thursday</td>
-              <td style="padding: 8px; border-bottom: 1px solid #eee;">11:00 AM - 10:00 PM</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px; border-bottom: 1px solid #eee;">Friday</td>
-              <td style="padding: 8px; border-bottom: 1px solid #eee;">11:00 AM - 11:00 PM</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px; border-bottom: 1px solid #eee;">Saturday</td>
-              <td style="padding: 8px; border-bottom: 1px solid #eee;">11:00 AM - 11:00 PM</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px; border-bottom: 1px solid #eee;">Sunday</td>
-              <td style="padding: 8px; border-bottom: 1px solid #eee;">12:00 PM - 9:00 PM</td>
-            </tr>
-          </table>
-        </div>
-        
-        <div>
-          <h3>Reviews</h3>
-          <div class="reviews">
-            <div class="review">
-              <div class="review-header">
-                <div class="review-avatar">👤</div>
-                <div>
-                  <strong>John D.</strong>
-                  <div>⭐⭐⭐⭐⭐</div>
-                </div>
-              </div>
-              <p>Best pizza in town! The crust is perfectly crispy and the sauce is delicious. Highly recommend the Margherita.</p>
-            </div>
-            
-            <div class="review">
-              <div class="review-header">
-                <div class="review-avatar">👤</div>
-                <div>
-                  <strong>Sarah M.</strong>
-                  <div>⭐⭐⭐⭐</div>
-                </div>
-              </div>
-              <p>Great food but service can be a bit slow during peak hours. The garlic knots are amazing!</p>
-            </div>
-            
-            <div class="review">
-              <div class="review-header">
-                <div class="review-avatar">👤</div>
-                <div>
-                  <strong>Michael T.</strong>
-                  <div>⭐⭐⭐⭐⭐</div>
-                </div>
-              </div>
-              <p>Authentic Italian taste. Family owned and it shows in the quality. Definitely coming back!</p>
-            </div>
-          </div>
-        </div>
+  <div style="
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    gap: 10px; 
+    width: 100%; 
+    height: 300px; 
+    background-color: #f0f0f0; 
+    margin-bottom: 20px;
+  ">
+    {% if restaurant.photo_urls %}
+      {% for url in restaurant.photo_urls %}
+        <img 
+          src="{{ url }}" 
+          alt="{{ restaurant.name }}" 
+          style="max-height: 100%; max-width: 33%; object-fit: cover;"
+        >
+      {% endfor %}
+    {% else %}
+      [No Photos Available]
+    {% endif %}
+  </div>
+  
+  <div class="split-content">
+    <div class="main-content">
+      <!-- Restaurant Name -->
+      <h2>{{ restaurant.name }}</h2>
+      
+      <!-- Type, Price Range, Open/Closed -->
+      <div style="margin-bottom: 20px;">
+        <span>
+          {% if restaurant.primary_type %}
+            {{ restaurant.primary_type }}
+          {% else %}
+            Unknown Cuisine
+          {% endif %}
+          • 
+          {% if restaurant.price_range != "N/A" %}
+            {{ restaurant.price_range }}
+          {% else %}
+            Price Unknown
+          {% endif %}
+          • 
+          {% if restaurant.hours and restaurant.hours.openNow %}
+            <span style="color: #4CAF50;">Open</span>
+            {% if restaurant.closes_at %}
+              • Closes at {{ restaurant.closes_at }}
+            {% endif %}
+          {% else %}
+            <span style="color: red;">Closed</span>
+          {% endif %}
+        </span>
       </div>
       
-      <div class="sidebar">
-        <div class="map-container">
-          [Map View]
-        </div>
-        
-        <div style="background-color: white; border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-          <h4>Make a Reservation</h4>
-          
-          <form>
-            <div class="form-group">
-              <label class="form-label">Date</label>
-              <input type="date" class="form-input">
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Time</label>
-              <select class="form-input">
-                <option>11:00 AM</option>
-                <option>11:30 AM</option>
-                <option>12:00 PM</option>
-                <!-- More time options -->
-              </select>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Party Size</label>
-              <select class="form-input">
-                <option>1 person</option>
-                <option selected>2 people</option>
-                <option>3 people</option>
-                <option>4 people</option>
-                <option>5 people</option>
-                <option>6 people</option>
-                <option>7+ people</option>
-              </select>
-            </div>
-            
-            <button class="btn btn-primary" style="width: 100%;">Find a Table</button>
-          </form>
-        </div>
-        
-        
-        </div>
+      <!-- Rating and Reviews -->
+      <div style="margin-bottom: 20px;">
+        ⭐ {{ restaurant.rating }} ({{ restaurant.reviews }} reviews)
       </div>
+      
+      <!-- Buttons -->
+      <div style="display: flex; gap: 10px; margin-bottom: 30px;">
+        <a href="{{ restaurant.website }}" target="_blank" style="text-decoration: none;">
+          <button class="btn btn-primary">Make Reservation</button>
+        </a>
+        <button class="btn btn-secondary">View Menu</button>
+        <button class="btn btn-secondary">Save</button>
+        <button class="btn btn-secondary">Share</button>
+      </div>
+      
+      <!-- About / Editorial Summary -->
+      <div style="margin-bottom: 30px;">
+        <h3>About</h3>
+        <p>{{ restaurant.description }}</p>
+      </div>
+      
+      <!-- Location & Contact -->
+      <div style="margin-bottom: 30px;">
+        <h3>Location & Contact</h3>
+        <p>{{ restaurant.address }}</p>
+        <p>Phone: {{ restaurant.phone }}</p>
+        <p>
+          Website: 
+          {% if restaurant.website != "N/A" %}
+            <a href="{{ restaurant.website }}" target="_blank">{{ restaurant.website }}</a>
+          {% else %}
+            N/A
+          {% endif %}
+        </p>
+      </div>
+      
+      <!-- Hours -->
+      <div style="margin-bottom: 30px;">
+        <h3>Hours</h3>
+        {% if restaurant.hours and restaurant.hours.weekdayDescriptions %}
+          {% for day_str in restaurant.hours.weekdayDescriptions %}
+            <p>{{ day_str }}</p>
+          {% endfor %}
+        {% else %}
+          <p>No hours available.</p>
+        {% endif %}
+      </div>
+      
+      <!-- Reviews (Future Implementation) -->
+      
+      <div>
+        <h3>Reviews</h3>
+        {% if restaurant.reviews_list %}
+          <!-- Loop over the first five reviews (already sliced in view) -->
+          {% for review in restaurant.reviews_list %}
+            <div class="review" style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+              <div class="review-header" style="display: flex; align-items: center;">
+                <!-- Display user avatar if it exists -->
+                {% if review.authorAttribution.photoUri %}
+                  <img src="{{ review.authorAttribution.photoUri }}" alt="{{ review.authorAttribution.displayName }}"
+                       style="width:40px; height:40px; border-radius:50%; margin-right:10px;">
+                {% else %}
+                  <div style="width:40px; height:40px; border-radius:50%; background:#ccc; margin-right:10px; text-align:center; line-height:40px;">
+                    👤
+                  </div>
+                {% endif %}
+                
+                <!-- Display author name & relative publish time (e.g. '3 months ago') -->
+                <div>
+                  <strong>{{ review.authorAttribution.displayName }}</strong>
+                  <div style="font-size:12px; color:#666;">
+                    {{ review.relativePublishTimeDescription }}
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Show rating and text -->
+              <div style="margin-top:10px;">
+                Rating: {{ review.rating }} ⭐
+              </div>
+              <div style="margin-top:5px;">
+                {{ review.text.text }}
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p>No reviews available.</p>
+        {% endif %}
+      </div>
+    </div>
+    
+    <!-- Sidebar (Map, Reservation, etc.) -->
+    <div class="sidebar">
+      <h3>Find Us Here</h3>
+      <div class="map-container" id="map" style="width: 100%; height: 400px;"></div>
+      <script>
+        function initMap() {
+          // Get the user's location from the template context (ensure these are passed)
+          var userLat = parseFloat("{{ lat|default:'0' }}");
+          var userLng = parseFloat("{{ lng|default:'0' }}");
+          // Get the restaurant's location from the restaurant dictionary
+          var restLat = parseFloat("{{ restaurant.latitude|default:'0' }}");
+          var restLng = parseFloat("{{ restaurant.longitude|default:'0' }}");
+          
+          // Determine center: if both user's and restaurant's coordinates are available,
+          // compute the midpoint. Otherwise, use whichever is available.
+          var center = { lat: userLat, lng: userLng };
+          if (restLat !== 0 && restLng !== 0) {
+            if (userLat !== 0 && userLng !== 0) {
+              center = { lat: (userLat + restLat) / 2, lng: (userLng + restLng) / 2 };
+            } else {
+              center = { lat: restLat, lng: restLng };
+            }
+          }
+          
+          // Create the map
+          var map = new google.maps.Map(document.getElementById('map'), {
+            center: center,
+            zoom: 14
+          });
+          
+          var bounds = new google.maps.LatLngBounds();
+          
+          // Place marker for user's location (if available)
+          if (userLat !== 0 && userLng !== 0) {
+            var userPos = { lat: userLat, lng: userLng };
+            var userMarker = new google.maps.Marker({
+              position: userPos,
+              map: map,
+              title: "You are here",
+              icon: {
+                url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+              }
+            });
+            bounds.extend(userPos);
+          }
+          
+          // Place marker for the restaurant's location (if available)
+          if (restLat !== 0 && restLng !== 0) {
+            var restPos = { lat: restLat, lng: restLng };
+            var restMarker = new google.maps.Marker({
+              position: restPos,
+              map: map,
+              title: "{{ restaurant.name }}"
+            });
+            bounds.extend(restPos);
+          }
+          
+          // Adjust zoom to fit both markers
+          if (!bounds.isEmpty()) {
+            map.fitBounds(bounds);
+          } else {
+            // Fallback: if no markers, default zoom/center
+            map.setZoom(14);
+            map.setCenter(center);
+          }
+        }
+      </script>
+      <!-- Load the Google Maps JavaScript API -->
+      <script 
+        src="https://maps.googleapis.com/maps/api/js?key={{ google_api_key }}&callback=initMap" 
+        async 
+        defer
+      ></script>
+
     </div>
   </div>
 </div>

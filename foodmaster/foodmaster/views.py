@@ -20,6 +20,8 @@ from .models import Profile
 
 from django.views.decorators.http import require_POST
 from .models import Comment
+from datetime import datetime, timezone
+import pytz
 
 
 from django.shortcuts import get_object_or_404, redirect
@@ -390,28 +392,161 @@ def restaurant_search_view(request):
 # -----------------------------
 # Restaurant Detail View
 # -----------------------------
+# def restaurant_detail_view(request, place_id):
+#     """
+#     Renders the restaurant detail page.
+#     """
+#     # Example placeholder:
+#     restaurant = {
+#         "id": place_id,
+#         "name": "Placeholder Restaurant",
+#         "cuisine": "Italian",
+#         "price_range": "$$",
+#         "distance": "0.8",
+#         "status": "Open • Closes at 10:00 PM",
+#         "rating": "4.7",
+#         "reviews": "324",
+#         "description": "Placeholder description for this restaurant.",
+#         "address": "123 Main Street, Anytown",
+#         "phone": "(555) 123-4567",
+#         "website": "www.mariospizza.com"
+#     }
+
+#     context = {
+#         "restaurant": restaurant
+#     }
+#     return render(request, 'foodmaster/restaurant_detail.html', context)
+
+
+def parse_close_time(iso_string):
+    """
+    Given an ISO8601 string like '2025-04-08T01:00:00Z',
+    parse it as UTC and convert to local time, returning a formatted string like '9:00 PM'.
+    """
+    dt_utc = datetime.strptime(iso_string, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    local_tz = pytz.timezone("America/New_York")  # Or your local time zone
+    dt_local = dt_utc.astimezone(local_tz)
+    return dt_local.strftime("%I:%M %p")  # e.g. "09:00 PM"
+
+
 def restaurant_detail_view(request, place_id):
-    """
-    Renders the restaurant detail page.
-    """
-    # Example placeholder:
-    restaurant = {
-        "id": place_id,
-        "name": "Placeholder Restaurant",
-        "cuisine": "Italian",
-        "price_range": "$$",
-        "distance": "0.8",
-        "status": "Open • Closes at 10:00 PM",
-        "rating": "4.7",
-        "reviews": "324",
-        "description": "Placeholder description for this restaurant.",
-        "address": "123 Main Street, Anytown",
-        "phone": "(555) 123-4567",
-        "website": "www.mariospizza.com"
-    }
+    endpoint = f"https://places.googleapis.com/v1/places/{place_id}"
+    fields = (
+        "id,displayName,formattedAddress,photos,types,"
+        "rating,userRatingCount,priceLevel,currentOpeningHours,"
+        "regularOpeningHours,editorialSummary,internationalPhoneNumber,"
+        "websiteUri,primaryTypeDisplayName,location,reviews"
+    )
+    url = f"{endpoint}?fields={fields}&key={settings.GOOGLE_PLACES_API_KEY}"
+    
+    resp = requests.get(url, headers={"Content-Type": "application/json"})
+    if resp.status_code != 200:
+        # Fallback if there's an error
+        restaurant = {
+            "id": place_id,
+            "name": "Unknown Restaurant",
+            "types": [],
+            "rating": "N/A",
+            "reviews": "N/A",
+            "reviews_count": "N/A",
+            "reviews_list": [],
+            "price_range": "N/A",
+            "description": "No description available.",
+            "address": "N/A",
+            "phone": "N/A",
+            "website": "N/A",
+            "primary_type": "Unknown Cuisine",
+            # "photo_url": None,
+            "photo_url": [],
+            "hours": None,
+            "closes_at": None,
+            "latitude": 0,
+            "longitude": 0,
+        }
+    else:
+        data = resp.json()
+        # print(data)
+        # Extract core fields
+        display_name_obj = data.get("displayName", {})
+        primary_type = data.get("primaryTypeDisplayName", {}).get("text", "Unknown Cuisine")
+        restaurant_name = display_name_obj.get("text", "N/A")
+        address = data.get("formattedAddress", "N/A")
+        rating = data.get("rating", "N/A")
+        user_rating_count = data.get("userRatingCount", "N/A")
+        price_level = data.get("priceLevel", "N/A")
+        editorial_summary = data.get("editorialSummary", {}).get("text", "No description available.")
+        phone = data.get("internationalPhoneNumber", "N/A")
+        website = data.get("websiteUri", "N/A")
+
+        # Convert the priceLevel string to dollar signs
+        price_map = {
+            "PRICE_LEVEL_INEXPENSIVE": "$",
+            "PRICE_LEVEL_MODERATE": "$$",
+            "PRICE_LEVEL_EXPENSIVE": "$$$",
+            "PRICE_LEVEL_VERY_EXPENSIVE": "$$$$"
+        }
+        price_range = price_map.get(price_level, "N/A")
+
+        # Photo
+        photo_urls = []
+        photos = data.get("photos", [])
+        for photo_obj in photos[:3]:
+            photo_resource = photo_obj.get("name")
+            if photo_resource:
+                url = (
+                    f"https://places.googleapis.com/v1/{photo_resource}/media"
+                    f"?maxHeightPx=400&maxWidthPx=400&key={settings.GOOGLE_PLACES_API_KEY}"
+                )
+                photo_urls.append(url)
+
+        # Hours
+        hours_data = data.get("currentOpeningHours") or data.get("regularOpeningHours")
+        
+        # If there's a nextCloseTime, parse it
+        closes_at = None
+        if hours_data and "nextCloseTime" in hours_data:
+            iso_close = hours_data["nextCloseTime"]  # e.g. "2025-04-08T01:00:00Z"
+            closes_at = parse_close_time(iso_close)
+
+        # Extract restaurant location from the "location" field if available.
+        location_data = data.get("location", {})
+        restaurant_lat = location_data.get("latitude", 0)
+        restaurant_lng = location_data.get("longitude", 0)
+
+        # Extract reviews
+        reviews_data = data.get("reviews", [])
+        reviews_list = reviews_data[:5]  # Slice for up to 5 reviews
+
+        restaurant = {
+            "id": place_id,
+            "name": restaurant_name,
+            "primary_type": primary_type,  # Use primary type for display
+            "rating": rating,
+            "reviews": user_rating_count,
+            "price_range": price_range,  # e.g. $$, $$$
+            "description": editorial_summary,
+            "address": address,
+            "phone": phone,
+            "website": website,
+            # "photo_url": photo_url,
+            "photo_urls": photo_urls,
+            "hours": hours_data,     # e.g. { openNow: True/False, weekdayDescriptions: [...], ... }
+            "closes_at": closes_at,  # e.g. "9:00 PM"
+            "reviews_list": reviews_list,
+            "latitude": restaurant_lat,
+            "longitude": restaurant_lng,
+        }
+        # print(restaurant)
+    
+    # context = {"restaurant": restaurant}
+    user_lat = request.GET.get('lat', '0')
+    user_lng = request.GET.get('lng', '0')
 
     context = {
-        "restaurant": restaurant
+        "restaurant": restaurant,
+        "lat": user_lat,
+        "lng": user_lng,
+        'google_api_key': settings.GOOGLE_PLACES_API_KEY,
     }
     return render(request, 'foodmaster/restaurant_detail.html', context)
 
