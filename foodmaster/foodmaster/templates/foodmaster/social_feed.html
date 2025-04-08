@@ -26,7 +26,13 @@
             {% for post in posts %}
             <div class="post" id="post-{{ post.id }}" data-post-id="{{ post.id }}" style="background-color: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 24px; overflow: hidden; transition: transform 0.2s; border: 1px solid #f0f0f0;">
               <div class="post-header" style="display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #f5f5f5;">
-                <div class="post-avatar" style="width: 48px; height: 48px; border-radius: 50%; background-color: #f0f8ff; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 20px;">👤</div>
+                <div class="post-avatar" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; margin-right: 12px;">
+                  {% if post.author.profile.profile_image %}
+                    <img src="{{ post.author.profile.profile_image.url }}" alt="Profile Image" style="width: 100%; height: 100%; object-fit: cover;">
+                  {% else %}
+                    👤
+                  {% endif %}
+                </div>
                 <div style="flex: 1;">
                   <div style="font-weight: 600; font-size: 16px; color: #333;">{{ post.author }}</div>
                   <div style="font-size: 14px; color: #666;">{{ post.time_ago }} • {{ post.category }}</div>
@@ -63,6 +69,14 @@
                 {% endif %}
               </div>
               
+              {% if post.shared_from %}
+                <div class="shared-info" style="background-color: #f9f9f9; border: 1px dashed #ccc; padding: 10px; margin: 10px 20px; border-radius: 4px;">
+                  <strong>Shared from:</strong>
+                  <p style="margin: 8px 0;">{{ post.shared_from.content }}</p>
+                  <span style="font-size: 14px; color: #666;">by {{ post.shared_from.author.username }}</span>
+                </div>
+              {% endif %}
+              
               <div class="post-actions" style="display: flex; align-items: center; padding: 0 20px 16px; gap: 20px; border-bottom: 1px solid #f5f5f5;">
                 <div style="display: flex; align-items: center; gap: 6px;">
                   <button class="like-btn" data-post-id="{{ post.id }}" onclick="toggleLike(this)" 
@@ -79,7 +93,10 @@
                 <span class="comment-count" onclick="toggleComments(this)" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: #666;">
                   <span style="font-size: 18px;">💬</span><span class="toggle-text"></span> {{ post.comments.count }} Comments
                 </span>
-                
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <a href="{% url 'share_post' post.id %}" style="text-decoration: none; font-size: 20px; color: #666;">🔗</a>
+                  <span class="share-count" style="font-size:14px; color:#666;">{{ post.shares.count }} Shares</span>
+                </div>
                 {% if post.author == request.user %}
                   <button onclick="deletePost(this)" class="btn-delete" style="margin-left: auto; background: none; border: none; color: #ff5252; font-size: 14px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
                     <span style="font-size: 18px;">🗑️</span> Delete
@@ -122,16 +139,23 @@
         </div>
       </div>
 
-      <!-- 保持侧边栏不变 -->
+      <!-- Sidebar -->
       <div class="sidebar">
         <div style="background-color: white; border-radius: 8px; border: 1px solid #eee; padding: 15px; margin-bottom: 20px;">
           <h4>Your Profile</h4>
           <div style="display: flex; margin-bottom: 15px;">
-            <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #f0f0f0; margin-right: 15px; display: flex; align-items: center; justify-content: center;">👤</div>
+            
+            <div class="post-avatar" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; margin-right: 12px;">
+              {% if user.profile.profile_image %}
+                <img src="{{ user.profile.profile_image.url }}" alt="Profile Image" style="width:100%; height:100%; object-fit: cover;">
+              {% else %}
+                👤
+              {% endif %}
+            </div>
             <div>
               <div style="font-weight: bold;">{{ user.username }}</div>
               <div style="font-size: 14px; color: #666;">@{{ user.username }}</div>
-              <div style="font-size: 14px; margin-top: 5px;">{{ user.bio|default:"Food enthusiast & home cook" }}</div>
+              <div style="font-size: 14px; margin-top: 5px;">{{ user.profile.bio|default:"Food enthusiast & home cook" }}</div>
             </div>
           </div>
           <div style="display: flex; gap: 15px; margin-bottom: 15px;">

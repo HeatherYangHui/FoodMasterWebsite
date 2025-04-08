@@ -104,21 +104,51 @@ def dashboard_view(request):
 # -----------------------------
 # Profile View (Requires Login)
 # -----------------------------
+
 @login_required
 def profile_view(request):
     if request.method == 'POST':
-        # For now, just update the built-in User fields
         user = request.user
         new_full_name = request.POST.get('full_name', user.first_name)
         new_username = request.POST.get('username', user.username)
-        new_bio = request.POST.get('bio', '')  # Currently not stored anywhere, just a placeholder
+        new_bio = request.POST.get('bio', user.profile.bio)
+        new_food_preferences = request.POST.get('food_preferences', '') 
 
-        # Update built-in user fields
         user.first_name = new_full_name
         user.username = new_username
         user.save()
 
-        messages.success(request, "Profile updated (placeholder logic).")
+        profile = user.profile
+        profile.bio = new_bio
+        if new_food_preferences:
+            food_preferences_list = [pref.strip() for pref in new_food_preferences.split(',') if pref.strip()]
+            profile.food_preferences = food_preferences_list
+        else:
+            profile.food_preferences = []
+        profile_image = request.FILES.get('profile_image')
+        if profile_image:
+            try:
+                image = Image.open(profile_image)
+                image.thumbnail((300, 300))  
+
+                image_io = BytesIO()
+                image_format = image.format if image.format else 'JPEG'
+                image.save(image_io, format=image_format)
+
+                from django.core.files.uploadedfile import InMemoryUploadedFile
+                profile.profile_image = InMemoryUploadedFile(
+                    image_io,      
+                    'ImageField', 
+                    profile_image.name,  
+                    f'image/{image_format.lower()}',  # content_type
+                    image_io.tell(), 
+                    None            # charset
+                )
+            except Exception as e:
+                print("Profile image processing error:", e)
+        profile.save()
+
+        messages.success(request, "Profile updated successfully.")
         return redirect('profile')
 
     return render(request, 'foodmaster/profile.html')
@@ -697,3 +727,30 @@ def toggle_follow(request, profile_id):
         'is_following': is_following,
         'followers_count': profile.followers.count()
     })
+    
+@login_required
+def share_post_view(request, post_id):
+    
+    original_post = get_object_or_404(Post, id=post_id)
+    if request.method == 'POST':
+        comment = request.POST.get('comment', '')
+    
+        new_post = Post.objects.create(
+            author=request.user,
+            content=comment,
+            category=original_post.category,  
+            tags=original_post.tags,        
+            shared_from=original_post,     
+        )
+
+        if original_post.photo:
+            new_post.photo = original_post.photo
+        new_post.save()
+        messages.success(request, "Post shared successfully!")
+        return redirect('social_feed')
+    else:
+       
+        context = {
+            'original_post': original_post,
+        }
+        return render(request, 'foodmaster/share_post.html', context)

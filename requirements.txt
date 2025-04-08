@@ -8,3 +8,4 @@ sqlparse>=0.4
 requests
 jwt
 GDAL==3.10.2
+pytz

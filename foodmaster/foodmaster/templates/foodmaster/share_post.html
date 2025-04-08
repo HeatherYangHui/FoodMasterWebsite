@@ -1,0 +1,25 @@
+{% extends 'foodmaster/base.html' %}
+
+{% block title %}Share Post{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+  <h2>Share this post</h2>
+  <div style="background-color: #f9f9f9; border: 1px solid #e1e4e8; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+    <strong>{{ original_post.author }}</strong> &bull; {{ original_post.time_ago }}<br>
+    <p>{{ original_post.content }}</p>
+    {% if original_post.photo %}
+      <img src="{{ original_post.photo.url }}" alt="Post Photo" style="max-width: 100%; height: auto;">
+    {% endif %}
+  </div>
+
+  <form method="post" action="{% url 'share_post' original_post.id %}">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="comment">Add a comment (optional):</label>
+      <textarea name="comment" id="comment" rows="4" style="width: 100%; padding: 10px; border: 1px solid #e1e4e8; border-radius: 4px;" placeholder="What do you think?"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary" style="margin-top: 16px;">Share Post</button>
+  </form>
+</div>
+{% endblock %}
