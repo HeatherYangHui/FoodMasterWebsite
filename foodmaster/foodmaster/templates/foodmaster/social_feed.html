@@ -1,8 +1,11 @@
-{% extends 'foodmaster/base.html' %}
 
+{% extends 'foodmaster/base.html' %}
+{% load single_timesince %}
 {% block title %}Food Master - Social Feed{% endblock %}
 
 {% block content %}
+
+
 <div class="wireframe-section">
 
     <div class="split-content">
@@ -35,7 +38,7 @@
                 </div>
                 <div style="flex: 1;">
                   <div style="font-weight: 600; font-size: 16px; color: #333;">{{ post.author }}</div>
-                  <div style="font-size: 14px; color: #666;">{{ post.time_ago }} • {{ post.category }}</div>
+                  <div style="font-size: 14px; color: #666;">{{ post.created_at|single_timesince }} • {{ post.category }}</div>
                 </div>
                 {% if request.user != post.author %}
                   {% if request.user in post.author.profile.followers.all %}
@@ -68,7 +71,7 @@
                 </div>
                 {% endif %}
               </div>
-              
+
               {% if post.shared_from %}
                 <div class="shared-info" style="background-color: #f9f9f9; border: 1px dashed #ccc; padding: 10px; margin: 10px 20px; border-radius: 4px;">
                   <strong>Shared from:</strong>
