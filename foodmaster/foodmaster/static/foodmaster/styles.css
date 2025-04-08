@@ -504,3 +504,11 @@ footer {
   font-size: 12px;
   display: inline-block;
 }
+
+
+.nav-link.active {
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+  border-radius: 4px;
+  outline: 2px solid #333;
+  background-color: #f0f0f0; 
+}
