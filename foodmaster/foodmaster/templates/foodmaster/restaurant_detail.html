@@ -70,7 +70,14 @@
         </a>
         <button class="btn btn-secondary">View Menu</button>
         <button class="btn btn-secondary">Save</button>
-        <button class="btn btn-secondary">Share</button>
+
+        <form action="{% url 'create_post' %}" method="get">
+          <input type="hidden" name="place_id" value="{{ restaurant.id }}">
+          <input type="hidden" name="rest_name" value="{{ restaurant.name|urlencode }}">
+          <input type="hidden" name="lat" value="{{ restaurant.latitude }}">
+          <input type="hidden" name="lng" value="{{ restaurant.longitude }}">
+          <button type="submit" class="btn btn-secondary">Share</button>
+        </form>
       </div>
       
       <!-- About / Editorial Summary -->

@@ -1,4 +1,4 @@
-{% extends 'foodmaster/base.html' %}
+s{% extends 'foodmaster/base.html' %}
 
 {% block title %}Food Master - Create Post{% endblock %}
 
@@ -7,18 +7,37 @@
     
     <div style="max-width: 800px; margin: 0 auto;">
       <h3 style="margin-bottom: 20px;">Create New Post</h3>
-      
+
+
+
       <form method="post" action="{% url 'create_post' %}" enctype="multipart/form-data">
         {% csrf_token %}
+        <input type="hidden" name="place_id" value="{{ place_id }}">
+        <input type="hidden" name="rest_name" value="{{ rest_name }}">
+        <input type="hidden" name="lat" value="{{ lat }}">
+        <input type="hidden" name="lng" value="{{ lng }}">
+        {% if rest_name %}
+        <p>Sharing {{ rest_name }}</p>
+        {% endif %}
+
+        {% if restaurant %}
+        <div class="restaurant-share-info" style="background-color: #eef; padding: 10px; border: 1px solid #ccd; border-radius: 4px; margin-bottom: 20px;">
+          You are sharing: <strong>{{ restaurant.name }}</strong><br>
+          {{ restaurant.address }}
+        </div>
+        {% endif %}
         
         <div class="form-group">
           <label class="form-label">Upload Photo</label>
           <div style="border: 2px dashed #ddd; border-radius: 8px; padding: 40px; text-align: center; margin-bottom: 20px;">
             <div style="font-size: 48px; margin-bottom: 10px;">📸</div>
-            <p>Click to upload a photo or drag & drop</p>
-            <input type="file" name="photo"  id="photo-upload">
-            <button type="button" class="btn btn-secondary" onclick="document.getElementById('photo-upload').click()">Select Photo</button>
+            <p>Click to upload photos or drag & drop</p>
+            
+            <!-- Label references input's id -->
+            <label for="photo-upload" class="btn btn-secondary" style="cursor: pointer;">Select Photo</label>
+            <input type="file" name="photos" id="photo-upload" multiple style="display: none;">
           </div>
+          <div id="preview-container" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;"></div>
         </div>
         
         <div class="form-group">
@@ -60,8 +79,35 @@
           <a href="{% url 'social_feed' %}"><button type="button" class="btn btn-secondary">Cancel</button></a>
           <button type="submit" class="btn btn-primary">Share Post</button>
         </div>
+        <script>
+          const fileInput = document.getElementById('photo-upload');
+          const previewContainer = document.getElementById('preview-container');
+
+          fileInput.addEventListener('change', function() {
+            const files = fileInput.files;
+            // Clear any old previews
+            previewContainer.innerHTML = '';
+
+            for (let i = 0; i < files.length; i++) {
+              const file = files[i];
+              const reader = new FileReader();
+
+              reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.style.width = '80px';
+                img.style.height = '80px';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '4px';
+                img.style.border = '1px solid #ccc';
+                previewContainer.appendChild(img);
+              };
+
+              reader.readAsDataURL(file);
+            }
+          });
+        </script>
       </form>
-    </div>
   </div>
 </div>
 {% endblock %}

@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 
 # For password reset functionality:
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
@@ -11,12 +12,14 @@ from django.contrib.auth import get_user_model
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth import logout
+from django.db.models import Count
 
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D  # Distance
 from .models import Restaurant
 from .models import Post
 from .models import Profile
+from .models import PostImage
 
 from django.views.decorators.http import require_POST
 from .models import Comment
@@ -585,53 +588,140 @@ def restaurant_detail_view(request, place_id):
 # Social Feed View
 # -----------------------------
 def social_feed_view(request):
-    posts = Post.objects.all().order_by('-created_at')
-    return render(request, 'foodmaster/social_feed.html', {'posts': posts})
+    posts = Post.objects.all()
+    filter_value = request.GET.get('filter', '')  
+
+    if filter_value == 'following':
+        posts = posts.filter(author__profile__followers=request.user)
+    elif filter_value == 'trending':
+        posts = posts.annotate(num_likes=Count('likes')).order_by('-num_likes')
+    elif filter_value in ['breakfast', 'lunch', 'dinner', 'dessert']:
+        posts = posts.filter(category__iexact=filter_value)
+    elif filter_value == 'all':
+        pass
+
+    posts = posts.order_by('-created_at')
+    suggested_users = []
+    if request.user.is_authenticated:
+        suggested_users = get_suggested_users(request.user)
+
+    context = {
+        'posts': posts,
+        'suggested_users': suggested_users,
+    }
+    
+    return render(request, 'foodmaster/social_feed.html', context)
 
 
+def get_suggested_users(user):
+    """
+    Recommend other users based on mutual follows.
+    1. Retrieve the list of Profiles followed by the current user.
+    2. Iterate through all other users' Profiles and calculate the size of the intersection between their follow lists and the current user's follow list.
+    3. Sort the results in descending order based on the number of mutual follows. If there are any mutual follows, return the top 5; otherwise, return 5 random recommendations.
+    4. Cache the result for 1 hour to reduce redundant computations.
+    """
+# Suggest users based on mutual followings:
+# 1. Get the profiles the current user is following.
+# 2. For all other users, calculate the number of shared followings with the current user.
+# 3. Sort by the number of shared followings in descending order.
+# 4. If fewer than 5 good matches, fill the rest randomly.
+# 5. Cache the result for performance (1 hour).
+    cache_key = f'suggested_users_{user.id}'
+    suggested_profiles = cache.get(cache_key)
+    if suggested_profiles is not None:
+        return suggested_profiles
+
+    # Get the set of profiles the current user follows.
+    current_following = set(user.following_profiles.all())
+    suggestions = []
+    # For each other profile, calculate mutual follows.
+    for profile in Profile.objects.exclude(user=user):
+        candidate_following = set(profile.user.following_profiles.all())
+        common_count = len(current_following.intersection(candidate_following))
+        suggestions.append((profile, common_count))
+
+    # Sort all candidate profiles by number of mutual followers.
+    suggestions.sort(key=lambda item: item[1], reverse=True)
+
+    suggested_profiles = [item[0] for item in suggestions if item[1] > 0][:5]
+
+    # If fewer than 5 suggestions, fill with random profiles.
+    if len(suggested_profiles) < 5:
+        remaining = Profile.objects.exclude(user=user).exclude(
+            id__in=[profile.id for profile in suggested_profiles]
+        ).order_by('?')[:(5 - len(suggested_profiles))]
+        suggested_profiles = list(suggested_profiles) + list(remaining)
+    # Store the result in cache for 1 hour to improve performance.
+    cache.set(cache_key, suggested_profiles, 3600)  
+    return suggested_profiles
 
 @login_required
 def create_post_view(request):
+    restaurant_id = request.GET.get('restaurant_id', '')
     if request.method == 'POST':
         content = request.POST.get('content')
         category = request.POST.get('category', '')
         tags = request.POST.get('tags', '')
-        photo = request.FILES.get('photo')
-        if photo:
+        photos = request.FILES.getlist('photos')
+        photo_files = []
+        for photo in photos:
             try:
                 image = Image.open(photo)
                 image.thumbnail((1024, 1024))
-
+ 
                 image_io = BytesIO()
                 image_format = image.format if image.format else 'JPEG'
                 image.save(image_io, format=image_format)
-                # compress img when uploading to cut down latency
-                # Create new InMemoryUploadedFile
-                photo = InMemoryUploadedFile(
-                    image_io,       # file
-                    'photo',        # field name
-                    photo.name,     # file name
-                    f'image/{image_format.lower()}',  # content_type
-                    image_io.tell(),# size
-                    None            # charset
+                processed_photo = InMemoryUploadedFile(
+                    image_io, 'photo', photo.name, f'image/{image_format.lower()}', image_io.tell(), None
                 )
+                photo_files.append(processed_photo)
             except Exception as e:
                 print("Image processing error:", e)
         if tags:
             tags_list = [tag.strip() for tag in tags.split(',')]
         else:
             tags_list = []
-        # Create a new Post instance
-        Post.objects.create(
+        # Create a new Post instance without a photo field
+        place_id = request.POST.get('place_id', '') or request.GET.get('place_id', '')
+        rest_name = request.POST.get('rest_name', '') or request.GET.get('rest_name', '')
+        lat_str = request.POST.get('lat', '') or request.GET.get('lat', '0')
+        lng_str = request.POST.get('lng', '') or request.GET.get('lng', '0')
+
+        try:
+            rest_lat = float(lat_str)
+        except ValueError:
+            rest_lat = 0.0
+        try:
+            rest_lng = float(lng_str)
+        except ValueError:
+            rest_lng = 0.0
+
+        post = Post.objects.create(
             author=request.user,
             content=content,
             category=category,
             tags=tags_list,
-            photo=photo
+            shared_restaurant_place_id=place_id,
+            shared_restaurant_name=rest_name,
+            shared_restaurant_lat=rest_lat,
+            shared_restaurant_lng=rest_lng,
         )
-        return redirect('social_feed')
-    return render(request, 'foodmaster/create_post.html')
 
+        # Save multiple photos if any
+        for processed_photo in photo_files:
+            # Assuming a PostImage model exists with a ForeignKey to Post and an ImageField named 'image'
+
+            PostImage.objects.create(post=post, image=processed_photo)
+        return redirect('social_feed')
+    context = {
+        'place_id': request.GET.get('place_id', ''),
+        'rest_name': request.GET.get('rest_name', ''),
+        'lat': request.GET.get('lat', '0'),
+        'lng': request.GET.get('lng', '0'),
+    }
+    return render(request, 'foodmaster/create_post.html', context)
 
 
 @login_required
@@ -730,8 +820,9 @@ def toggle_follow(request, profile_id):
     
 @login_required
 def share_post_view(request, post_id):
-    
+
     original_post = get_object_or_404(Post, id=post_id)
+    
     if request.method == 'POST':
         comment = request.POST.get('comment', '')
     
@@ -754,3 +845,5 @@ def share_post_view(request, post_id):
             'original_post': original_post,
         }
         return render(request, 'foodmaster/share_post.html', context)
+    
+    

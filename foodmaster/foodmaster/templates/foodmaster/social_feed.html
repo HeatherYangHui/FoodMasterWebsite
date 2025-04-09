@@ -11,18 +11,24 @@
     <div class="split-content">
       <div class="main-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-          <h3>Food Community</h3>
+          <h2>Food Community</h2>
           <a href="{% url 'create_post' %}"><button class="btn btn-primary">Create Post</button></a>
         </div>
-        
+
         <div class="filters" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
-          <div class="filter-chip" style="background-color: #f0f8ff; border: 1px solid #e1e4e8; border-radius: 20px; padding: 8px 16px; font-size: 14px; cursor: pointer; transition: all 0.2s;">Following</div>
-          <div class="filter-chip" style="background-color: #4CAF50; color: white; border: 1px solid #4CAF50; border-radius: 20px; padding: 8px 16px; font-size: 14px; cursor: pointer; transition: all 0.2s;">Trending</div>
-          <div class="filter-chip" style="background-color: #f0f8ff; border: 1px solid #e1e4e8; border-radius: 20px; padding: 8px 16px; font-size: 14px; cursor: pointer; transition: all 0.2s;">Breakfast</div>
-          <div class="filter-chip" style="background-color: #f0f8ff; border: 1px solid #e1e4e8; border-radius: 20px; padding: 8px 16px; font-size: 14px; cursor: pointer; transition: all 0.2s;">Lunch</div>
-          <div class="filter-chip" style="background-color: #f0f8ff; border: 1px solid #e1e4e8; border-radius: 20px; padding: 8px 16px; font-size: 14px; cursor: pointer; transition: all 0.2s;">Dinner</div>
-          <div class="filter-chip" style="background-color: #f0f8ff; border: 1px solid #e1e4e8; border-radius: 20px; padding: 8px 16px; font-size: 14px; cursor: pointer; transition: all 0.2s;">Dessert</div>
+          <a href="?filter=all" class="filter-chip {% if request.GET.filter == 'all' or not request.GET.filter %}active{% endif %}">All</a>
+          <a href="?filter=following" class="filter-chip {% if request.GET.filter == 'following' %}active{% endif %}">Following</a>
+          <a href="?filter=trending" class="filter-chip {% if request.GET.filter == 'trending' %}active{% endif %}">Trending</a>
+          <a href="?filter=breakfast" class="filter-chip {% if request.GET.filter == 'breakfast' %}active{% endif %}">Breakfast</a>
+          <a href="?filter=lunch" class="filter-chip {% if request.GET.filter == 'lunch' %}active{% endif %}">Lunch</a>
+          <a href="?filter=dinner" class="filter-chip {% if request.GET.filter == 'dinner' %}active{% endif %}">Dinner</a>
+          <a href="?filter=dessert" class="filter-chip {% if request.GET.filter == 'dessert' %}active{% endif %}">Dessert</a>
+
+
+
         </div>
+        
+        
         
         <div class="social-feed">
           {% if posts %}
@@ -55,12 +61,28 @@
                 {% endif %}
               </div>
               
-              {% if post.photo %}
-              <div class="post-image" style="width: 100%; height: auto; max-height: 450px; overflow: hidden; position: relative; background-color: #f9f9f9;">
-                <img src="{{ post.photo.url }}" loading="lazy" alt="Post Photo" style="width: 100%; height: auto; object-fit: contain;">
-              </div>
-              {% endif %}
-              
+              {% if post.postimage_set.all %}
+                <div class="image-slider" style="position: relative;">
+                  <div class="slider-wrapper" style="display: flex; overflow: hidden;">
+                    {% for img in post.postimage_set.all %}
+                      <img src="{{ img.image.url }}" loading="lazy"
+                          alt="Post Photo"
+                          style="width: 100%; flex-shrink: 0; transition: transform 0.3s;"
+                          class="slider-image">
+                    {% endfor %}
+                  </div>
+
+                  {% if post.postimage_set.all|length > 1 %}
+                    <button class="slider-prev">◀</button>
+                    <button class="slider-next">▶</button>
+                  {% endif %}
+                </div>
+                {% elif post.photo %}
+                  <div class="post-image" style="width: 100%; height: auto; max-height: 450px; overflow: hidden; position: relative; background-color: #f9f9f9;">
+                    <img src="{{ post.photo.url }}" loading="lazy" alt="Post Photo" style="width: 100%; height: auto; object-fit: contain;">
+                  </div>
+                {% endif %}
+                              
               <div style="padding: 20px;">
                 <p style="font-size: 16px; line-height: 1.5; color: #333; margin: 0;">{{ post.content }}</p>
                 {% if post.tags %}
@@ -77,6 +99,19 @@
                   <strong>Shared from:</strong>
                   <p style="margin: 8px 0;">{{ post.shared_from.content }}</p>
                   <span style="font-size: 14px; color: #666;">by {{ post.shared_from.author.username }}</span>
+                </div>
+              {% endif %}
+              
+              {% if post.shared_restaurant_place_id %}
+                <div class="shared-restaurant-info">
+                  <strong>Restaurant:</strong>
+                  <a href="{% url 'restaurant_detail' post.shared_restaurant_place_id %}"
+                    style="text-decoration: none; color: #333; font-weight: bold;">
+                    {{ post.shared_restaurant_name }}
+                  </a>
+                  <p style="font-size: 13px; color: #666; margin-top: 4px;">
+                    ({{ post.shared_restaurant_lat }}, {{ post.shared_restaurant_lng }})
+                  </p>
                 </div>
               {% endif %}
               
@@ -191,14 +226,14 @@
         </div>
         
         <div style="background-color: white; border-radius: 8px; border: 1px solid #eee; padding: 15px;">
-          <h4>Suggested Users</h4>
+          <h4>Suggested For You</h4>
           {% if suggested_users %}
             {% for suggested in suggested_users %}
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
               <div style="display: flex; align-items: center;">
                 <div style="width: 40px; height: 40px; border-radius: 50%; background-color: #f0f0f0; margin-right: 10px; display: flex; align-items: center; justify-content: center;">
                   {% if suggested.profile_image %}
-                    <img src="{{ suggested.profile_image.url }}" alt="Profile Image" style="width: 100%; height: 100%; border-radius: 50%;">
+                    <img src="{{ suggested.profile_image.url }}" alt="Profile Image" style="width: 100%; height: 100%;object-fit: cover; border-radius: 50%;">
                   {% else %}
                     👤
                   {% endif %}
@@ -226,7 +261,7 @@
   </div>
 </div>
 
-<!-- JavaScript 保持不变 -->
+<!-- JavaScript  -->
 <script>
   const csrftoken = "{{ csrf_token }}";
   
@@ -368,7 +403,7 @@
     .then(data => {
       if (data.success) {
         buttonElement.textContent = data.is_following ? 'Unfollow' : 'Follow';
-        // 更新按钮样式
+
         if (data.is_following) {
           buttonElement.style.backgroundColor = '#f0f0f0';
           buttonElement.style.color = '#333';
@@ -383,5 +418,54 @@
     .catch(error => console.error('Error:', error));
   }
 
+</script>
+<!-- Slider functionality -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.image-slider').forEach(function(slider) {
+    const wrapper = slider.querySelector('.slider-wrapper');
+    const images = slider.querySelectorAll('.slider-image');
+    const prevButton = slider.querySelector('.slider-prev');
+    const nextButton = slider.querySelector('.slider-next');
+    let currentIndex = 0;
+
+    if (images.length <= 1) {
+      prevButton.style.display = 'none';
+      nextButton.style.display = 'none';
+    } else {
+      slider.addEventListener('mouseenter', function() {
+        prevButton.style.display = 'block';
+        nextButton.style.display = 'block';
+      });
+      slider.addEventListener('mouseleave', function() {
+        prevButton.style.display = 'none';
+        nextButton.style.display = 'none';
+      });
+    }
+
+    function updateSlider() {
+      if (images.length > 0) {
+        const singleImgWidth = images[0].clientWidth; 
+        const offset = -currentIndex * singleImgWidth;
+        wrapper.style.transform = `translateX(${offset}px)`;
+      }
+    }
+
+    if (prevButton && nextButton) {
+
+      prevButton.addEventListener('click', function() {
+        currentIndex = (currentIndex - 1 + images.length) % images.length;
+        updateSlider();
+      });
+
+      nextButton.addEventListener('click', function() {
+        currentIndex = (currentIndex + 1) % images.length;
+        updateSlider();
+      });
+    }
+
+    window.addEventListener('resize', updateSlider);
+  });
+});
 </script>
 {% endblock %}
