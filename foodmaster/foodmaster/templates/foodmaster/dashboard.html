@@ -13,9 +13,15 @@
     </div>
     
     <div style="display: flex; gap: 20px; margin-bottom: 40px;">
-      <a href="{% url 'restaurant_search' %}"><button class="btn btn-primary">Find Restaurants</button></a>
-      <button class="btn btn-secondary">Cook at Home</button>
-      <button class="btn btn-secondary">Explore Community</button>
+      <a href="{% url 'restaurant_search' %}">
+        <button class="btn btn-primary">Find Restaurants</button>
+      </a>
+      <a href="{% url 'recipe_search' %}">
+        <button class="btn btn-secondary">Cook at Home</button>
+      </a>
+      <a href="{% url 'social_feed' %}">
+        <button class="btn btn-secondary">Explore Community</button>
+      </a>
     </div>
     
     <div style="margin-bottom: 30px;">

@@ -847,3 +847,64 @@ def share_post_view(request, post_id):
         return render(request, 'foodmaster/share_post.html', context)
     
     
+# -----------------------------
+# Recipe Search View
+# -----------------------------
+def recipe_search_view(request):
+    """
+    Renders the recipe search page with an input form.
+    If a dish parameter is provided, validates it and then redirects to the recipe_detail view.
+    """
+    dish = request.GET.get('dish', '').strip()
+    if dish:
+        # Can add more validation if needed.
+        return redirect(f"{request.path.replace('recipe_search', 'recipe_detail')}?dish={dish}")
+    return render(request, 'foodmaster/recipe_search.html')
+
+
+# -----------------------------
+# Recipe Detail View
+# -----------------------------
+def recipe_detail_view(request):
+    """
+    Reads the dish name from the query parameters, fetches recipe details (placeholder data for now),
+    and renders the recipe_detail.html page.
+    """
+    dish = request.GET.get('dish', '').strip()
+    if not dish:
+        messages.error(request, "Please enter a dish name to search for a recipe.")
+        return redirect('recipe_search')
+
+    # Here you would normally call your Recipe API using the dish name.
+    # For demonstration purposes, we'll use placeholder data:
+    recipe = {
+        "name": dish,
+        "cuisine": "Italian",
+        "time": "25 min",
+        "difficulty": "Easy",
+        "rating": "4.8",
+        "reviews": "156",
+        "prep_time": "10 min",
+        "cook_time": "15 min",
+        "servings": "4",
+        "ingredients": [
+            {"name": "Spaghetti", "amount": "400g spaghetti"},
+            {"name": "Pancetta or Guanciale", "amount": "200g, diced"},
+            {"name": "Eggs", "amount": "4 large"},
+            {"name": "Pecorino Romano", "amount": "50g, grated"},
+            {"name": "Parmesan", "amount": "50g, grated"},
+            {"name": "Black Pepper", "amount": "Freshly ground"},
+            {"name": "Salt", "amount": "To taste"}
+        ],
+        "instructions": (
+            "Step 1: Cook the spaghetti until al dente. "
+            "Step 2: In a pan, fry the pancetta until crispy. "
+            "Step 3: Beat the eggs and mix in the cheeses. "
+            "Step 4: Combine everything off the heat to avoid scrambling the eggs and season."
+        ),
+        "nutrition": "Approximately 500 calories per serving.",
+        "image_url": "[Recipe Image URL Placeholder]",  # Replace with actual image URL if available
+    }
+    
+    # Pass the recipe details to the template.
+    return render(request, 'foodmaster/recipe_detail.html', {"recipe": recipe})

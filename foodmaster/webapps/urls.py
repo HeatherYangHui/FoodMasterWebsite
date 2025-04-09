@@ -62,6 +62,9 @@ urlpatterns = [
     path('restaurant/<str:place_id>/', views.restaurant_detail_view, name='restaurant_detail'),
     path('share/<int:post_id>/', views.share_post_view, name='share_post'),
     path('restaurant/<int:place_id>/', views.restaurant_detail_view, name='restaurant_detail'),
+    # recipe search view
+    path('recipe_search/', views.recipe_search_view, name='recipe_search'),
+    path('recipe_detail/', views.recipe_detail_view, name='recipe_detail'),
 ]
 
 

@@ -1,0 +1,49 @@
+{% extends 'foodmaster/base.html' %}
+
+{% block title %}Food Master - Recipe Search{% endblock %}
+
+{% block content %}
+<div class="wireframe-section">
+  <div class="wireframe" style="max-width: 600px; margin: 40px auto; text-align: center;">
+    <h2 style="margin-bottom: 20px;">Cook at Home</h2>
+    <p style="margin-bottom: 30px;">Enter the name of the dish you’d like to cook today:</p>
+    
+    <form method="GET" action="{% url 'recipe_search' %}" style="display: flex; flex-direction: column; gap: 15px;">
+      <div class="form-group" style="position: relative;">
+        <input
+          type="text"
+          name="dish"
+          class="form-input"
+          placeholder="e.g. Spaghetti Bolognese"
+          required
+          style="
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+          "
+        >
+      </div>
+      
+      <button
+        type="submit"
+        class="btn btn-primary"
+        style="
+          width: 100%;
+          padding: 12px;
+          font-size: 16px;
+          background-color: #4CAF50;
+          border: none;
+          border-radius: 4px;
+          color: white;
+          cursor: pointer;
+        "
+      >
+        Search Recipes
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

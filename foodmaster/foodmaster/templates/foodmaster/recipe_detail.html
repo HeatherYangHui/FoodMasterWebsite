@@ -4,97 +4,147 @@
 
 {% block content %}
 <div class="wireframe-section">
+  <div class="recipe-detail" style="display: flex; gap: 80px; align-items: flex-start;">
     
-    <div class="recipe-detail">
-      <div class="recipe-image">
+    <!-- LEFT COLUMN: Recipe Image + Nearby Markets -->
+    <div style="flex: 1;">
+      <!-- Recipe Image -->
+      <div class="recipe-image" style="
+        width: 100%;
+        height: 200px;
+        background-color: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+      ">
         [Recipe Image]
       </div>
       
-      <div class="recipe-content">
-        <h2>{{ recipe.name|default:"Spaghetti Carbonara" }}</h2>
-        <div style="margin-bottom: 20px;">
-          <span>{{ recipe.cuisine|default:"Italian" }} • {{ recipe.time|default:"25 min" }} • {{ recipe.difficulty|default:"Easy" }} • </span>
-          <span>⭐ {{ recipe.rating|default:"4.8" }} ({{ recipe.reviews|default:"156" }} reviews)</span>
-        </div>
+      <!-- Nearby Markets -->
+      <div class="nearby-markets" style="margin-top: 20px;">
+        <h3>Nearby Markets</h3>
         
-        <div style="display: flex; gap: 10px; margin-bottom: 30px;">
-          <button class="btn btn-primary">Add to Shopping List</button>
-          <button class="btn btn-secondary">Save Recipe</button>
-          <button class="btn btn-secondary">Share</button>
-        </div>
-        
-        <div style="display: flex; gap: 20px; margin-bottom: 30px;">
-          <div style="flex: 1; padding: 15px; background-color: #f9f9f9; border-radius: 8px; text-align: center;">
-            <div style="font-weight: bold;">Prep Time</div>
-            <div>{{ recipe.prep_time|default:"10 min" }}</div>
-          </div>
-          <div style="flex: 1; padding: 15px; background-color: #f9f9f9; border-radius: 8px; text-align: center;">
-            <div style="font-weight: bold;">Cook Time</div>
-            <div>{{ recipe.cook_time|default:"15 min" }}</div>
-          </div>
-          <div style="flex: 1; padding: 15px; background-color: #f9f9f9; border-radius: 8px; text-align: center;">
-            <div style="font-weight: bold;">Servings</div>
-            <div id="servings-count">{{ recipe.servings|default:"4" }}</div>
+        <!-- Market 1 -->
+        <div class="market-card" style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+          <div style="font-weight: bold;">Trader Joe's</div>
+          <div>General Grocery • 0.6 miles</div>
+          <div>⭐ 4.5 (276 reviews)</div>
+          <div style="color: #4CAF50;">Open • Closes at 9:00 PM</div>
+          <div style="margin-top: 5px;">
+            <span class="tag">Organic</span>
+            <span class="tag">Budget-friendly</span>
+            <span class="tag">General</span>
           </div>
         </div>
         
-        <div class="tabs">
-          <div class="tab active">Ingredients</div>
-          <div class="tab">Instructions</div>
-          <div class="tab">Nutrition</div>
-          <div class="tab">Reviews</div>
+        <!-- Market 2 -->
+        <div class="market-card" style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+          <div style="font-weight: bold;">H Mart</div>
+          <div>Asian Grocery • 1.3 miles</div>
+          <div>⭐ 4.6 (193 reviews)</div>
+          <div style="color: #4CAF50;">Open • Closes at 10:00 PM</div>
+          <div style="margin-top: 5px;">
+            <span class="tag">Korean</span>
+            <span class="tag">Japanese</span>
+            <span class="tag">Chinese</span>
+          </div>
         </div>
         
-        <div class="ingredient-list">
-          <h3>Ingredients</h3>
-          <p>Adjust servings: 
-            <button style="width: 30px; height: 30px; border-radius: 50%; border: 1px solid #ddd; background: white;" id="decrease-servings">-</button>
-            <span style="margin: 0 10px;" id="servings-display">{{ recipe.servings|default:"4" }}</span>
-            <button style="width: 30px; height: 30px; border-radius: 50%; border: 1px solid #ddd; background: white;" id="increase-servings">+</button>
-          </p>
-          
-          {% if recipe.ingredients %}
-            {% for ingredient in recipe.ingredients %}
-            <div class="ingredient-item">
-              <div>{{ ingredient.amount }} {{ ingredient.name }}</div>
-              <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Add</button>
-            </div>
-            {% endfor %}
-          {% else %}
-            <div class="ingredient-item">
-              <div>400g spaghetti</div>
-              <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Add</button>
-            </div>
-            <div class="ingredient-item">
-              <div>200g pancetta or guanciale, diced</div>
-              <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Add</button>
-            </div>
-            <div class="ingredient-item">
-              <div>4 large eggs</div>
-              <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Add</button>
-            </div>
-            <div class="ingredient-item">
-              <div>50g Pecorino Romano cheese, grated</div>
-              <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Add</button>
-            </div>
-            <div class="ingredient-item">
-              <div>50g Parmesan cheese, grated</div>
-              <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Add</button>
-            </div>
-            <div class="ingredient-item">
-              <div>Freshly ground black pepper</div>
-              <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Add</button>
-            </div>
-            <div class="ingredient-item">
-              <div>Salt, to taste</div>
-              <button class="btn btn-secondary" style="padding: 5px 10px; font-size: 12px;">Add</button>
-            </div>
-          {% endif %}
-          
-          <button class="btn btn-primary" style="width: 100%; margin-top: 20px;">Add All to Shopping List</button>
+        <!-- Market 3 -->
+        <div class="market-card" style="margin-bottom: 15px;">
+          <div style="font-weight: bold;">Whole Foods Market</div>
+          <div>Organic Grocery • 1.8 miles</div>
+          <div>⭐ 4.4 (325 reviews)</div>
+          <div style="color: #4CAF50;">Open • Closes at 11:00 PM</div>
+          <div style="margin-top: 5px;">
+            <span class="tag">Organic</span>
+            <span class="tag">Premium</span>
+            <span class="tag">Health Foods</span>
+          </div>
         </div>
       </div>
     </div>
+    
+    <!-- RIGHT COLUMN: Recipe Content -->
+    <div class="recipe-content" style="flex: 1;">
+      <h2>{{ recipe.name|default:"Spaghetti Carbonara" }}</h2>
+      <div style="margin-bottom: 20px;">
+        <span>{{ recipe.cuisine|default:"Italian" }} • {{ recipe.time|default:"25 min" }} • {{ recipe.difficulty|default:"Easy" }} • </span>
+        <span>⭐ {{ recipe.rating|default:"4.8" }} ({{ recipe.reviews|default:"156" }} reviews)</span>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 30px;">
+        <button class="btn btn-primary">Add to Shopping List</button>
+        <button class="btn btn-secondary">Save Recipe</button>
+        <button class="btn btn-secondary">Share</button>
+      </div>
+      
+      <!-- Times (No Servings Adjustment) -->
+      <div style="display: flex; gap: 20px; margin-bottom: 30px;">
+        <div style="flex: 1; padding: 15px; background-color: #f9f9f9; border-radius: 8px; text-align: center;">
+          <div style="font-weight: bold;">Prep Time</div>
+          <div>{{ recipe.prep_time|default:"10 min" }}</div>
+        </div>
+        <div style="flex: 1; padding: 15px; background-color: #f9f9f9; border-radius: 8px; text-align: center;">
+          <div style="font-weight: bold;">Cook Time</div>
+          <div>{{ recipe.cook_time|default:"15 min" }}</div>
+        </div>
+      </div>
+      
+      <div class="tabs" style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <div class="tab active" style="cursor: pointer; font-weight: bold;">Ingredients</div>
+        <div class="tab" style="cursor: pointer;">Instructions</div>
+        <div class="tab" style="cursor: pointer;">Nutrition</div>
+        <div class="tab" style="cursor: pointer;">Reviews</div>
+      </div>
+
+      <!-- Ingredient List (Checkboxes Instead of "Add" Buttons) -->
+      <div class="ingredient-list">
+        <h3>Ingredients</h3>
+        
+        {% if recipe.ingredients %}
+          {% for ingredient in recipe.ingredients %}
+          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <input type="checkbox" style="transform: scale(1.3);" />
+            <span>{{ ingredient.amount }} {{ ingredient.name }}</span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <input type="checkbox" style="transform: scale(1.3);" />
+            <span>400g spaghetti</span>
+          </div>
+          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <input type="checkbox" style="transform: scale(1.3);" />
+            <span>200g pancetta or guanciale, diced</span>
+          </div>
+          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <input type="checkbox" style="transform: scale(1.3);" />
+            <span>4 large eggs</span>
+          </div>
+          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <input type="checkbox" style="transform: scale(1.3);" />
+            <span>50g Pecorino Romano cheese, grated</span>
+          </div>
+          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <input type="checkbox" style="transform: scale(1.3);" />
+            <span>50g Parmesan cheese, grated</span>
+          </div>
+          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <input type="checkbox" style="transform: scale(1.3);" />
+            <span>Freshly ground black pepper</span>
+          </div>
+          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+            <input type="checkbox" style="transform: scale(1.3);" />
+            <span>Salt, to taste</span>
+          </div>
+        {% endif %}
+        
+        <button class="btn btn-primary" style="width: 100%; margin-top: 20px;">Add All to Shopping List</button>
+      </div>
+    </div>
+    
   </div>
 </div>
 {% endblock %}
@@ -102,27 +152,6 @@
 {% block extra_scripts %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    const decreaseBtn = document.getElementById('decrease-servings');
-    const increaseBtn = document.getElementById('increase-servings');
-    const servingsDisplay = document.getElementById('servings-display');
-    const servingsCount = document.getElementById('servings-count');
-    
-    decreaseBtn.addEventListener('click', function() {
-      let count = parseInt(servingsDisplay.textContent);
-      if (count > 1) {
-        count--;
-        servingsDisplay.textContent = count;
-        servingsCount.textContent = count;
-      }
-    });
-    
-    increaseBtn.addEventListener('click', function() {
-      let count = parseInt(servingsDisplay.textContent);
-      count++;
-      servingsDisplay.textContent = count;
-      servingsCount.textContent = count;
-    });
-    
     // Tab functionality
     const tabs = document.querySelectorAll('.tab');
     tabs.forEach(tab => {
