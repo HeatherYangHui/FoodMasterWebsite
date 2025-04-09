@@ -8,42 +8,96 @@
     <h2 style="margin-bottom: 20px;">Cook at Home</h2>
     <p style="margin-bottom: 30px;">Enter the name of the dish you’d like to cook today:</p>
     
-    <form method="GET" action="{% url 'recipe_search' %}" style="display: flex; flex-direction: column; gap: 15px;">
+    <form id="recipe-search-form" method="GET" action="{% url 'recipe_search' %}" style="display: flex; flex-direction: column; gap: 15px;">
+      <!-- Hidden fields for location -->
+      <input type="hidden" name="lat" id="lat-field" value="{{ lat }}">
+      <input type="hidden" name="lng" id="lng-field" value="{{ lng }}">
+      
       <div class="form-group" style="position: relative;">
         <input
           type="text"
           name="dish"
           class="form-input"
-          placeholder="e.g. Spaghetti Bolognese"
+          placeholder="e.g. Spaghetti Carbonara"
           required
-          style="
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-          "
+          style="width: 100%; padding: 12px; font-size: 16px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;"
         >
       </div>
       
-      <button
-        type="submit"
-        class="btn btn-primary"
-        style="
-          width: 100%;
-          padding: 12px;
-          font-size: 16px;
-          background-color: #4CAF50;
-          border: none;
-          border-radius: 4px;
-          color: white;
-          cursor: pointer;
-        "
-      >
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 16px; background-color: #4CAF50; border: none; border-radius: 4px; color: white; cursor: pointer;">
         Search Recipes
       </button>
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Geolocation logic to update URL/sessionStorage if not already present.
+  document.addEventListener('DOMContentLoaded', function(){
+      let urlParams = new URLSearchParams(window.location.search);
+      let urlLat = urlParams.get('lat');
+      let urlLng = urlParams.get('lng');
+      
+      let storedLat = sessionStorage.getItem('lat');
+      let storedLng = sessionStorage.getItem('lng');
+      
+      if(urlLat && urlLng && urlLat !== "" && urlLng !== "") {
+          sessionStorage.setItem('lat', urlLat);
+          sessionStorage.setItem('lng', urlLng);
+          document.getElementById('lat-field').value = urlLat;
+          document.getElementById('lng-field').value = urlLng;
+      } else if(storedLat && storedLng){
+          // If URL is missing location but sessionStorage has them, update the URL
+          document.getElementById('lat-field').value = storedLat;
+          document.getElementById('lng-field').value = storedLng;
+          urlParams.set("lat", storedLat);
+          urlParams.set("lng", storedLng);
+          window.history.replaceState({}, "", window.location.pathname + "?" + urlParams.toString());
+      } else {
+          // If no location info is available, prompt the user
+          if (confirm("Allow location access to show nearby markets and recipes?")) {
+              if (navigator.geolocation) {
+                  navigator.geolocation.getCurrentPosition(success, error);
+              } else {
+                  alert("Geolocation is not supported by this browser.");
+              }
+          }
+      }
+      
+      function success(position) {
+          var latitude = position.coords.latitude;
+          var longitude = position.coords.longitude;
+          sessionStorage.setItem('lat', latitude);
+          sessionStorage.setItem('lng', longitude);
+          
+          // Update the hidden fields so the form has the correct values.
+          document.getElementById('lat-field').value = latitude;
+          document.getElementById('lng-field').value = longitude;
+          
+          // Also update the URL without reloading (optional)
+          let currentParams = new URLSearchParams(window.location.search);
+          currentParams.set("lat", latitude);
+          currentParams.set("lng", longitude);
+          window.history.replaceState({}, "", window.location.pathname + "?" + currentParams.toString());
+      }
+      
+      function error(err) {
+          console.warn("ERROR(" + err.code + "): " + err.message);
+      }
+  });
+  
+  // Intercept form submission to ensure that lat and lng are set
+  document.getElementById('recipe-search-form').addEventListener('submit', function(event) {
+      const latField = document.getElementById('lat-field').value;
+      const lngField = document.getElementById('lng-field').value;
+      
+      if (!latField || !lngField || latField === "" || lngField === "") {
+          event.preventDefault(); // Prevent form submission if location info is missing
+          alert("Location information is missing. Please allow location access.");
+          // Optionally, you could call geolocation here and then submit the form
+      }
+  });
+</script>
 {% endblock %}

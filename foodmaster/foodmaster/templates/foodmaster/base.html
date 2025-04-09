@@ -23,10 +23,11 @@
     <div class="nav-menu">
       <div class="nav-menu">
         <a href="{% url 'home' %}" 
-   class="nav-link {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Home</a>
-<a href="{% url 'restaurant_search' %}" 
+           class="nav-link {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'dashboard' %}active{% endif %}">Home</a>
+        <a href="{% url 'restaurant_search' %}" 
            class="nav-link {% if request.resolver_match.url_name == 'restaurant_search' %}active{% endif %}">Discover</a>
-        <a href="#" class="nav-link">Cook&Home</a>
+        <a href="{% url 'recipe_search' %}" 
+           class="nav-link {% if request.resolver_match.url_name == 'recipe_search' %}active{% endif %}">Cook at Home</a>
         <a href="{% url 'social_feed' %}" 
            class="nav-link {% if request.resolver_match.url_name == 'social_feed' %}active{% endif %}">Social</a>
         <a href="#" class="nav-link">Saved</a>

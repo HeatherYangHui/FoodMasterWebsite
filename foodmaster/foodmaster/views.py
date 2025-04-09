@@ -25,7 +25,7 @@ from django.views.decorators.http import require_POST
 from .models import Comment
 from datetime import datetime, timezone
 import pytz
-
+from django.urls import reverse
 
 from django.shortcuts import get_object_or_404, redirect
 
@@ -421,34 +421,6 @@ def restaurant_search_view(request):
         'lng': lng,
     }
     return render(request, 'foodmaster/restaurant_search.html', context)
-
-# -----------------------------
-# Restaurant Detail View
-# -----------------------------
-# def restaurant_detail_view(request, place_id):
-#     """
-#     Renders the restaurant detail page.
-#     """
-#     # Example placeholder:
-#     restaurant = {
-#         "id": place_id,
-#         "name": "Placeholder Restaurant",
-#         "cuisine": "Italian",
-#         "price_range": "$$",
-#         "distance": "0.8",
-#         "status": "Open • Closes at 10:00 PM",
-#         "rating": "4.7",
-#         "reviews": "324",
-#         "description": "Placeholder description for this restaurant.",
-#         "address": "123 Main Street, Anytown",
-#         "phone": "(555) 123-4567",
-#         "website": "www.mariospizza.com"
-#     }
-
-#     context = {
-#         "restaurant": restaurant
-#     }
-#     return render(request, 'foodmaster/restaurant_detail.html', context)
 
 
 def parse_close_time(iso_string):
@@ -856,27 +828,139 @@ def recipe_search_view(request):
     If a dish parameter is provided, validates it and then redirects to the recipe_detail view.
     """
     dish = request.GET.get('dish', '').strip()
+    # First, try getting from GET parameters
+    user_lat = request.GET.get('lat')
+    user_lng = request.GET.get('lng')
+    
+    # Optionally, try to retrieve from session (if you stored these in a prior view)
+    if not user_lat or not user_lng:
+        user_lat = request.session.get('lat', '')
+        user_lng = request.session.get('lng', '')
+    
     if dish:
-        # Can add more validation if needed.
-        return redirect(f"{request.path.replace('recipe_search', 'recipe_detail')}?dish={dish}")
-    return render(request, 'foodmaster/recipe_search.html')
+        target = reverse('recipe_detail')
+        return redirect(f"{target}?dish={dish}&lat={user_lat}&lng={user_lng}")
+    else:
+        return render(request, 'foodmaster/recipe_search.html')
 
 
 # -----------------------------
 # Recipe Detail View
 # -----------------------------
+def get_nearby_markets(lat, lng, radius=1000, store_type='supermarket'):
+    """
+    Searches for nearby markets (e.g. supermarkets or grocery stores) 
+    around the given lat/lng. We use an includedTypes list for "market" and "food_store".
+    Returns up to 3 markets.
+    """
+    endpoint = "https://places.googleapis.com/v1/places:searchNearby"
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": settings.GOOGLE_PLACES_API_KEY,
+        "X-Goog-FieldMask": (
+            "places.id,places.displayName,places.formattedAddress,places.location,"
+            "places.types,places.rating,places.photos"
+        )
+    }
+    
+    # Adjust the types as needed. Here we request both “market” and “food_store”
+    store_map = {
+        'asian_store': 'asian_grocery_store',
+        'food_store': 'food_store',
+        'grocery_store': 'grocery_store',
+        'supermarket': 'supermarket'  # default
+    }
+    
+    # Resolve user selection to a valid type for the API
+    included_type = store_map.get(store_type, 'supermarket')
+    
+    payload = {
+        "includedTypes": included_type,
+        "maxResultCount": 3,
+        "locationRestriction": {
+            "circle": {
+                "center": {
+                    "latitude": lat,
+                    "longitude": lng
+                },
+                "radius": float(radius)
+            }
+        }
+    }
+    
+    response = requests.post(endpoint, headers=headers, json=payload)
+    markets = []
+    try:
+        data = response.json()
+    except Exception as e:
+        print("Error parsing response JSON:", e)
+        data = {}
+
+    if "places" in data:
+        for place in data["places"]:
+            display_name = place.get("displayName")
+            rating = place.get("rating", "N/A")
+            address = place.get("formattedAddress", "No address provided")
+            photo_url = None
+            types = place.get("types", [])
+            place_id = place.get("id")
+            
+            location_data = place.get("location", {})
+            market_lat = location_data.get("latitude")
+            market_lng = location_data.get("longitude")
+            
+            photos_data = place.get("photos", [])
+            if photos_data:
+                first_photo = photos_data[0]
+                photo_resource = first_photo.get("name")
+                if photo_resource:
+                    photo_url = (
+                        f"https://places.googleapis.com/v1/{photo_resource}/media"
+                        f"?maxHeightPx=400&maxWidthPx=400&key={settings.GOOGLE_PLACES_API_KEY}"
+                    )
+            
+            # Optionally calculate distance (if needed)
+            distance = haversine_distance(lat, lng, market_lat, market_lng)
+            
+            markets.append({
+                "id": place_id,
+                "name": {"text": display_name},
+                "rating": rating,
+                "address": address,
+                "photo_url": photo_url,
+                "types": types,
+                "latitude": market_lat,
+                "longitude": market_lng,
+                "distance": f"{distance:.1f} miles"  # formatted distance
+            })
+    else:
+        print("No markets found or error:", data.get("error", data))
+    
+    return markets
+
+
 def recipe_detail_view(request):
     """
-    Reads the dish name from the query parameters, fetches recipe details (placeholder data for now),
-    and renders the recipe_detail.html page.
+    Renders the recipe detail page based on the dish parameter.    
     """
     dish = request.GET.get('dish', '').strip()
     if not dish:
-        messages.error(request, "Please enter a dish name to search for a recipe.")
+        messages.error(request, "No dish provided.")
         return redirect('recipe_search')
+    
+    # Read location; if not present, default to 0.
+    user_lat = request.GET.get('lat', '0')
+    user_lng = request.GET.get('lng', '0')
+    try:
+        user_lat = float(user_lat)
+        user_lng = float(user_lng)
+    except ValueError:
+        user_lat, user_lng = 0, 0
 
-    # Here you would normally call your Recipe API using the dish name.
-    # For demonstration purposes, we'll use placeholder data:
+    # Read the store_type from query parameters, default to 'supermarket'
+    store_type = request.GET.get('store_type', 'supermarket')
+    
+    # TODO: Replace placeholder data with a real call to a Recipe API
     recipe = {
         "name": dish,
         "cuisine": "Italian",
@@ -886,7 +970,7 @@ def recipe_detail_view(request):
         "reviews": "156",
         "prep_time": "10 min",
         "cook_time": "15 min",
-        "servings": "4",
+        "servings": "1",
         "ingredients": [
             {"name": "Spaghetti", "amount": "400g spaghetti"},
             {"name": "Pancetta or Guanciale", "amount": "200g, diced"},
@@ -896,15 +980,19 @@ def recipe_detail_view(request):
             {"name": "Black Pepper", "amount": "Freshly ground"},
             {"name": "Salt", "amount": "To taste"}
         ],
-        "instructions": (
-            "Step 1: Cook the spaghetti until al dente. "
-            "Step 2: In a pan, fry the pancetta until crispy. "
-            "Step 3: Beat the eggs and mix in the cheeses. "
-            "Step 4: Combine everything off the heat to avoid scrambling the eggs and season."
-        ),
+        "instructions": "Step 1: Cook the spaghetti... (placeholder text)",
         "nutrition": "Approximately 500 calories per serving.",
-        "image_url": "[Recipe Image URL Placeholder]",  # Replace with actual image URL if available
+        "image_url": "[Recipe Image URL Placeholder]",
     }
     
-    # Pass the recipe details to the template.
-    return render(request, 'foodmaster/recipe_detail.html', {"recipe": recipe})
+    # Retrieve nearby markets using the helper function
+    markets = get_nearby_markets(user_lat, user_lng, radius=2000, store_type=store_type)
+    
+    context = {
+        "recipe": recipe,
+        "lat": user_lat,
+        "lng": user_lng,
+        "markets": markets,
+        "store_type": store_type,
+    }
+    return render(request, 'foodmaster/recipe_detail.html', context)

@@ -23,46 +23,80 @@
       
       <!-- Nearby Markets -->
       <div class="nearby-markets" style="margin-top: 20px;">
-        <h3>Nearby Markets</h3>
+        <h3 style="margin-bottom: 15px;">Nearby Markets</h3>
         
-        <!-- Market 1 -->
-        <div class="market-card" style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-          <div style="font-weight: bold;">Trader Joe's</div>
-          <div>General Grocery • 0.6 miles</div>
-          <div>⭐ 4.5 (276 reviews)</div>
-          <div style="color: #4CAF50;">Open • Closes at 9:00 PM</div>
-          <div style="margin-top: 5px;">
-            <span class="tag">Organic</span>
-            <span class="tag">Budget-friendly</span>
-            <span class="tag">General</span>
-          </div>
-        </div>
-        
-        <!-- Market 2 -->
-        <div class="market-card" style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-          <div style="font-weight: bold;">H Mart</div>
-          <div>Asian Grocery • 1.3 miles</div>
-          <div>⭐ 4.6 (193 reviews)</div>
-          <div style="color: #4CAF50;">Open • Closes at 10:00 PM</div>
-          <div style="margin-top: 5px;">
-            <span class="tag">Korean</span>
-            <span class="tag">Japanese</span>
-            <span class="tag">Chinese</span>
-          </div>
-        </div>
-        
-        <!-- Market 3 -->
-        <div class="market-card" style="margin-bottom: 15px;">
-          <div style="font-weight: bold;">Whole Foods Market</div>
-          <div>Organic Grocery • 1.8 miles</div>
-          <div>⭐ 4.4 (325 reviews)</div>
-          <div style="color: #4CAF50;">Open • Closes at 11:00 PM</div>
-          <div style="margin-top: 5px;">
-            <span class="tag">Organic</span>
-            <span class="tag">Premium</span>
-            <span class="tag">Health Foods</span>
-          </div>
-        </div>
+        <!-- Filter Form: store_type dropdown -->
+        <form method="get" style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-size: 16px;">
+          <!-- Keep dish, lat, lng so we stay on the same page -->
+          <input type="hidden" name="dish" value="{{ recipe.name }}">
+          <input type="hidden" name="lat" value="{{ lat }}">
+          <input type="hidden" name="lng" value="{{ lng }}">
+          
+          <label for="store_type" style="font-weight: bold;">Store Type:</label>
+          <select
+            id="store_type"
+            name="store_type"
+            onchange="this.form.submit()"
+            style="
+              padding: 6px;
+              font-size: 16px;
+              border-radius: 4px;
+              border: 1px solid #ccc;
+              outline: none;
+              cursor: pointer;
+            "
+          >
+            <option value="asian_store" {% if store_type == "asian_store" %}selected{% endif %}>Asian Store</option>
+            <option value="food_store" {% if store_type == "food_store" %}selected{% endif %}>Food Store</option>
+            <option value="grocery_store" {% if store_type == "grocery_store" %}selected{% endif %}>Grocery Store</option>
+            <option value="supermarket" {% if store_type == "supermarket" %}selected{% endif %}>Supermarket</option>
+          </select>
+        </form>
+
+        {% if markets and markets|length > 0 %}
+          {% for market in markets %}
+            <div class="market-card" style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+              
+              <div style="display: flex; align-items: center; gap: 10px;">
+                {% if market.photo_url %}
+                  <img 
+                    src="{{ market.photo_url }}" 
+                    alt="{{ market.name.text }}" 
+                    style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;"
+                  >
+                {% else %}
+                  <div style="width: 100px; height: 100px; background: #ccc; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 32px;">
+                    🛒
+                  </div>
+                {% endif %}
+                
+                <div>
+                  <div style="font-weight: bold; font-size: 18px; margin-bottom: 4px;">
+                    {{ market.name.text.text }}
+                  </div>
+                  <div style="font-size: 14px; color: #555; margin-bottom: 4px;">
+                    {{ market.address }}
+                  </div>
+                  <div style="font-size: 14px;">
+                    ⭐ {{ market.rating }} ({{ market.distance }})
+                    <span style="margin-left: 8px; color: #4CAF50;">Open</span>
+                  </div>
+                  {% if market.types %}
+                    <div style="margin-top: 5px;">
+                      {% for t in market.types %}
+                        <span class="tag" style="background: #eee; padding: 3px 6px; border-radius: 4px; margin-right: 5px; font-size: 12px;">
+                          {{ t }}
+                        </span>
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p style="font-size: 14px; color: #666;">No nearby markets found.</p>
+        {% endif %}
       </div>
     </div>
     
