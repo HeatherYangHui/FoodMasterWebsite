@@ -142,7 +142,24 @@
       </div>
       
       <!-- Ingredient List (Checkboxes Instead of "Add" Buttons) -->
+      <!-- Ingredient List (Checkboxes Instead of "Add" Buttons) -->
       <div class="ingredient-list">
+        <h3>Ingredients</h3>
+        {% if recipe and recipe.displayIngredients %}
+          {% for ingredient in recipe.displayIngredients %}
+            <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+              <input type="checkbox" style="transform: scale(1.3);" />
+              <span>{{ ingredient.original }}</span>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p>No ingredient information available.</p>
+        {% endif %}
+        
+        <button class="btn btn-primary" style="width: 100%; margin-top: 20px;">Add All to Shopping List</button>
+      </div>
+
+      <!-- <div class="ingredient-list">
         <h3>Ingredients</h3>
         {% if recipe %}
           {% if recipe.usedIngredients %}
@@ -169,7 +186,7 @@
         {% endif %}
         
         <button class="btn btn-primary" style="width: 100%; margin-top: 20px;">Add All to Shopping List</button>
-      </div>
+      </div> -->
       <!-- <div class="ingredient-list">
         <h3>Ingredients</h3>
         {% if recipe and recipe.extendedIngredients %}

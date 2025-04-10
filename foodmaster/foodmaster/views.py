@@ -1086,23 +1086,59 @@ def recipe_detail_view(request):
     
     # Attempt to retrieve recipe details from Spoonacular.
     api_key = getattr(settings, "SPOONACULAR_API_KEY", None)
+    if not api_key:
+        raise Exception("SPOONACULAR_API_KEY is not configured in your settings.")
+
+    url = "https://api.spoonacular.com/recipes/complexSearch"
+    
+    params = {
+        "query": dish,
+        "addRecipeInformation": "true",
+        "fillIngredients": "true",   # ensures we get ingredient details
+        "number": "1",
+        "apiKey": api_key,
+    }
+    
+    response = requests.get(url, params=params)
     recipe_data = None
-    if api_key:
-        url = "https://api.spoonacular.com/recipes/findByIngredients"
-        params = {
-            "ingredients": dish,
-            "number": "1",
-            "ranking": "1",
-            "ignorePantry": "true",
-            "apiKey": api_key,
-        }
-        response = requests.get(url, params=params)
-        if response.status_code == 200:
-            recipes = response.json()  # Should be a list of recipes.
-            if recipes:
-                recipe_data = recipes[0]
-        else:
-            print("Spoonacular API error:", response.status_code, response.text)
+    if response.status_code == 200:
+        results = response.json().get("results", [])
+        if results:
+            recipe_data = results[0]
+            # Use the API-supplied "includeIngredients" if present, else fallback.
+            ingredients = recipe_data.get("includeIngredients") \
+                          or recipe_data.get("usedIngredients") \
+                          or recipe_data.get("extendedIngredients")
+            recipe_data["displayIngredients"] = ingredients
+    else:
+        print("Spoonacular API error:", response.status_code, response.text)
+    
+    lat = request.GET.get("lat", "")
+    lng = request.GET.get("lng", "")
+    
+    context = {
+        "recipe": recipe_data,
+        "lat": lat,
+        "lng": lng,
+    }
+    # api_key = getattr(settings, "SPOONACULAR_API_KEY", None)
+    # recipe_data = None
+    # if api_key:
+    #     url = "https://api.spoonacular.com/recipes/findByIngredients"
+    #     params = {
+    #         "ingredients": dish,
+    #         "number": "1",
+    #         "ranking": "1",
+    #         "ignorePantry": "true",
+    #         "apiKey": api_key,
+    #     }
+    #     response = requests.get(url, params=params)
+    #     if response.status_code == 200:
+    #         recipes = response.json()  # Should be a list of recipes.
+    #         if recipes:
+    #             recipe_data = recipes[0]
+    #     else:
+    #         print("Spoonacular API error:", response.status_code, response.text)
     
     # Fallback: placeholder recipe data if API returns nothing.
     if not recipe_data:
@@ -1136,4 +1172,4 @@ def recipe_detail_view(request):
     }
     return render(request, "foodmaster/recipe_detail.html", context)
 
-###second time test Eurus
+
