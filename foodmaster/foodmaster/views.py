@@ -1135,3 +1135,5 @@ def recipe_detail_view(request):
         "store_type": store_type,
     }
     return render(request, "foodmaster/recipe_detail.html", context)
+
+###second time test Eurus
