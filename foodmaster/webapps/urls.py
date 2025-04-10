@@ -64,8 +64,7 @@ urlpatterns = [
     path('restaurant/<int:place_id>/', views.restaurant_detail_view, name='restaurant_detail'),
     # recipe search view
     path('recipe_search/', views.recipe_search_view, name='recipe_search'),
-    # path('recipe_detail/', views.recipe_detail_view, name='recipe_detail'),
-    path('recipe/<str:recipe_name>/', views.recipe_detail, name='recipe_detail'),
+    path('recipe_detail/', views.recipe_detail_view, name='recipe_detail'),
 ]
 
 

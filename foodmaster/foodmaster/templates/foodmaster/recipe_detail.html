@@ -32,7 +32,7 @@
         <!-- Filter Form: store_type dropdown -->
         <form method="get" style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-size: 16px;">
           <!-- Keep dish, lat, lng so we stay on the same page -->
-          <input type="hidden" name="dish" value="{{ recipe.title }}">
+          <input type="hidden" name="dish" value="{{ request.GET.dish }}">
           <input type="hidden" name="lat" value="{{ lat }}">
           <input type="hidden" name="lng" value="{{ lng }}">
           
@@ -64,10 +64,10 @@
                   <img 
                     src="{{ market.photo_url }}" 
                     alt="{{ market.name.text }}" 
-                    style="width: 100px; height: 100px; object-fit: cover; border-radius: 4px;"
+                    style="width: 110px; height: 110px; object-fit: cover; border-radius: 4px;"
                   >
                 {% else %}
-                  <div style="width: 100px; height: 100px; background: #ccc; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 32px;">
+                  <div style="width: 110px; height: 110px; background: #ccc; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 32px;">
                     🛒
                   </div>
                 {% endif %}

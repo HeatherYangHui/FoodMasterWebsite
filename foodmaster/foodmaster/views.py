@@ -862,9 +862,9 @@ def recipe_search_view(request):
     
     if dish:
         # Pass the dish as the recipe_name to satisfy the URL pattern.
-        target = reverse('recipe_detail', kwargs={'recipe_name': dish})
+        target = reverse('recipe_detail')
         # Redirect to the recipe_detail page with lat and lng as query parameters.
-        return redirect(f"{target}?lat={user_lat}&lng={user_lng}")
+        return redirect(f"{target}?dish={dish}&lat={user_lat}&lng={user_lng}")
     else:
         return render(request, 'foodmaster/recipe_search.html')
 
@@ -965,124 +965,7 @@ def get_nearby_markets(lat, lng, radius=1000, store_type='supermarket'):
     return markets
 
 
-# def recipe_detail_view(request):
-#     """
-#     Renders the recipe detail page based on the dish parameter.    
-#     """
-#     dish = request.GET.get('dish', '').strip()
-#     if not dish:
-#         messages.error(request, "No dish provided.")
-#         return redirect('recipe_search')
-    
-#     # Read location; if not present, default to 0.
-#     user_lat = request.GET.get('lat', '0')
-#     user_lng = request.GET.get('lng', '0')
-#     try:
-#         user_lat = float(user_lat)
-#         user_lng = float(user_lng)
-#     except ValueError:
-#         user_lat, user_lng = 0, 0
-
-#     # Read the store_type from query parameters, default to 'supermarket'
-#     store_type = request.GET.get('store_type', 'supermarket')
-    
-#     # T: Replace placeholder data with a real call to a Recipe API
-#     recipe = {
-#         "name": dish,
-#         "cuisine": "Italian",
-#         "time": "25 min",
-#         "difficulty": "Easy",
-#         "rating": "4.8",
-#         "reviews": "156",
-#         "prep_time": "10 min",
-#         "cook_time": "15 min",
-#         "servings": "1",
-#         "ingredients": [
-#             {"name": "Spaghetti", "amount": "400g spaghetti"},
-#             {"name": "Pancetta or Guanciale", "amount": "200g, diced"},
-#             {"name": "Eggs", "amount": "4 large"},
-#             {"name": "Pecorino Romano", "amount": "50g, grated"},
-#             {"name": "Parmesan", "amount": "50g, grated"},
-#             {"name": "Black Pepper", "amount": "Freshly ground"},
-#             {"name": "Salt", "amount": "To taste"}
-#         ],
-#         "instructions": "Step 1: Cook the spaghetti... (placeholder text)",
-#         "nutrition": "Approximately 500 calories per serving.",
-#         "image_url": "[Recipe Image URL Placeholder]",
-#     }
-    
-#     # Retrieve nearby markets using the helper function
-#     markets = get_nearby_markets(user_lat, user_lng, radius=2000, store_type=store_type)
-    
-#     context = {
-#         "recipe": recipe,
-#         "lat": user_lat,
-#         "lng": user_lng,
-#         "markets": markets,
-#         "store_type": store_type,
-#     }
-#     return render(request, 'foodmaster/recipe_detail.html', context)
-
-
-
-# def recipe_detail(request, recipe_name):
-#     """
-#     Calls Spoonacular's complexSearch API with additional options
-#     to get detailed recipe information and renders the recipe_detail.html page.
-#     """
-#     # Retrieve your Spoonacular API key from Django settings.
-#     api_key = getattr(settings, "SPOONACULAR_API_KEY", None)
-#     if not api_key:
-#         # In production, raise an error or log an appropriate message.
-#         raise Exception("SPOONACULAR_API_KEY is not configured in your settings.")
-
-#     # The correct API endpoint for searching recipes.
-#     url = "https://api.spoonacular.com/recipes/complexSearch"
-
-#     # Build query parameters.
-#     params = {
-#         "query": recipe_name,               # the search query
-#         "addRecipeInformation": "true",     # to include extended info: ingredients, instructions, etc.
-#         "addRecipeNutrition": "true",       # to include nutrition information if available
-#         "number": "1",                      # retrieve only the top result
-#         "apiKey": api_key                   # your Spoonacular API key
-#     }
-
-#     # Make the API request.
-#     response = requests.get(url, params=params)
-
-#     # Initialize recipe_data as None.
-#     recipe_data = None
-
-#     # Check that the API call was successful.
-#     if response.status_code == 200:
-#         data = response.json()
-#         # Check if the API response contains at least one result.
-#         results = data.get("results", [])
-#         if results:
-#             recipe_data = results[0]
-#     else:
-#         # Optional: log error info for debugging:
-#         print("Spoonacular API error", response.status_code, response.text)
-#     print(results)
-
-#     # Get additional query parameters for the page (if needed)
-#     lat = request.GET.get("lat", "")
-#     lng = request.GET.get("lng", "")
-
-#     context = {
-#         "recipe": recipe_data,  # will be None if no data returned; template fallback values will be used
-#         "lat": lat,
-#         "lng": lng,
-#     }
-
-#     return render(request, "foodmaster/recipe_detail.html", context)
-
-# views.py
-import requests
-from django.shortcuts import render
-from django.conf import settings
-
+'''
 def recipe_detail(request, recipe_name):
     """
     Calls the Spoonacular "findByIngredients" API endpoint using the recipe_name
@@ -1125,4 +1008,81 @@ def recipe_detail(request, recipe_name):
         "lng": lng,
     }
     
+    return render(request, "foodmaster/recipe_detail.html", context)
+'''
+
+def recipe_detail_view(request):
+    """
+    Combined view that retrieves recipe information based on the 'dish' parameter via the Spoonacular API.
+    If the API call fails, a placeholder recipe is used.
+    Additionally, the user's location (lat/lng) and a store_type filter (defaulting to 'supermarket') are used
+    to fetch nearby market data.
+    """
+    dish = request.GET.get('dish', '').strip()
+    if not dish:
+        messages.error(request, "No dish provided.")
+        return redirect('recipe_search')
+    
+    # Retrieve the user's location from URL; default to 0 if not provided.
+    user_lat = request.GET.get('lat', '0')
+    user_lng = request.GET.get('lng', '0')
+    try:
+        user_lat = float(user_lat)
+        user_lng = float(user_lng)
+    except ValueError:
+        user_lat, user_lng = 0, 0
+
+    # Get the store_type from URL (default is 'supermarket')
+    store_type = request.GET.get('store_type', 'supermarket')
+    
+    # Attempt to retrieve recipe details from Spoonacular.
+    api_key = getattr(settings, "SPOONACULAR_API_KEY", None)
+    recipe_data = None
+    if api_key:
+        url = "https://api.spoonacular.com/recipes/findByIngredients"
+        params = {
+            "ingredients": dish,
+            "number": "1",
+            "ranking": "1",
+            "ignorePantry": "true",
+            "apiKey": api_key,
+        }
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            recipes = response.json()  # Should be a list of recipes.
+            if recipes:
+                recipe_data = recipes[0]
+        else:
+            print("Spoonacular API error:", response.status_code, response.text)
+    
+    # Fallback: placeholder recipe data if API returns nothing.
+    if not recipe_data:
+        recipe_data = {
+            "name": dish,
+            "cuisine": "N/A",
+            "time": "N/A",
+            "difficulty": "N/A",
+            "rating": "N/A",
+            "reviews": "N/A",
+            "prep_time": "N/A",
+            "cook_time": "N/A",
+            "servings": "N/A",
+            "ingredients": [
+                {"N/A": "N/A"},
+            ],
+            "instructions": "N/A",
+            "nutrition": "N/A",
+            "image_url": "N/A",
+        }
+    
+    # Retrieve nearby markets using the user's coordinates and selected store_type.
+    markets = get_nearby_markets(user_lat, user_lng, radius=2000, store_type=store_type)
+    
+    context = {
+        "recipe": recipe_data,
+        "lat": user_lat,
+        "lng": user_lng,
+        "markets": markets,
+        "store_type": store_type,
+    }
     return render(request, "foodmaster/recipe_detail.html", context)
