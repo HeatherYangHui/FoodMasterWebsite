@@ -565,14 +565,15 @@ def social_feed_view(request):
 
     if filter_value == 'following':
         posts = posts.filter(author__profile__followers=request.user)
-    elif filter_value == 'trending':
-        posts = posts.annotate(num_likes=Count('likes')).order_by('-num_likes')
     elif filter_value in ['breakfast', 'lunch', 'dinner', 'dessert']:
         posts = posts.filter(category__iexact=filter_value)
     elif filter_value == 'all':
         pass
 
-    posts = posts.order_by('-created_at')
+    if filter_value == 'trending':
+        posts = posts.annotate(num_likes=Count('likes')).order_by('-num_likes')
+    else:
+        posts = posts.order_by('-created_at')
     suggested_users = []
     if request.user.is_authenticated:
         suggested_users = get_suggested_users(request.user)
@@ -584,7 +585,7 @@ def social_feed_view(request):
     
     return render(request, 'foodmaster/social_feed.html', context)
 
-
+###Cecilia test
 def get_suggested_users(user):
     """
     Recommend other users based on mutual follows.
