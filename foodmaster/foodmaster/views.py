@@ -585,7 +585,7 @@ def social_feed_view(request):
     
     return render(request, 'foodmaster/social_feed.html', context)
 
-
+###Cecilia test
 def get_suggested_users(user):
     """
     Recommend other users based on mutual follows.
