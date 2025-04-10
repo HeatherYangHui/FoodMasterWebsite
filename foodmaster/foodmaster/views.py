@@ -822,13 +822,36 @@ def share_post_view(request, post_id):
 # -----------------------------
 # Recipe Search View
 # -----------------------------
+# def recipe_search_view(request):
+#     """
+#     Renders the recipe search page with an input form.
+#     If a dish parameter is provided, validates it and then redirects to the recipe_detail view.
+#     """
+#     dish = request.GET.get('dish', '').strip()
+#     # First, try getting from GET parameters
+#     user_lat = request.GET.get('lat')
+#     user_lng = request.GET.get('lng')
+    
+#     # Optionally, try to retrieve from session (if you stored these in a prior view)
+#     if not user_lat or not user_lng:
+#         user_lat = request.session.get('lat', '')
+#         user_lng = request.session.get('lng', '')
+    
+#     if dish:
+#         target = reverse('recipe_detail')
+#         return redirect(f"{target}?dish={dish}&lat={user_lat}&lng={user_lng}")
+#     else:
+#         return render(request, 'foodmaster/recipe_search.html')
+
+
+
 def recipe_search_view(request):
     """
     Renders the recipe search page with an input form.
     If a dish parameter is provided, validates it and then redirects to the recipe_detail view.
     """
     dish = request.GET.get('dish', '').strip()
-    # First, try getting from GET parameters
+    # First, try getting location from GET parameters.
     user_lat = request.GET.get('lat')
     user_lng = request.GET.get('lng')
     
@@ -838,10 +861,13 @@ def recipe_search_view(request):
         user_lng = request.session.get('lng', '')
     
     if dish:
-        target = reverse('recipe_detail')
-        return redirect(f"{target}?dish={dish}&lat={user_lat}&lng={user_lng}")
+        # Pass the dish as the recipe_name to satisfy the URL pattern.
+        target = reverse('recipe_detail', kwargs={'recipe_name': dish})
+        # Redirect to the recipe_detail page with lat and lng as query parameters.
+        return redirect(f"{target}?lat={user_lat}&lng={user_lng}")
     else:
         return render(request, 'foodmaster/recipe_search.html')
+
 
 
 # -----------------------------
@@ -939,60 +965,164 @@ def get_nearby_markets(lat, lng, radius=1000, store_type='supermarket'):
     return markets
 
 
-def recipe_detail_view(request):
-    """
-    Renders the recipe detail page based on the dish parameter.    
-    """
-    dish = request.GET.get('dish', '').strip()
-    if not dish:
-        messages.error(request, "No dish provided.")
-        return redirect('recipe_search')
+# def recipe_detail_view(request):
+#     """
+#     Renders the recipe detail page based on the dish parameter.    
+#     """
+#     dish = request.GET.get('dish', '').strip()
+#     if not dish:
+#         messages.error(request, "No dish provided.")
+#         return redirect('recipe_search')
     
-    # Read location; if not present, default to 0.
-    user_lat = request.GET.get('lat', '0')
-    user_lng = request.GET.get('lng', '0')
-    try:
-        user_lat = float(user_lat)
-        user_lng = float(user_lng)
-    except ValueError:
-        user_lat, user_lng = 0, 0
+#     # Read location; if not present, default to 0.
+#     user_lat = request.GET.get('lat', '0')
+#     user_lng = request.GET.get('lng', '0')
+#     try:
+#         user_lat = float(user_lat)
+#         user_lng = float(user_lng)
+#     except ValueError:
+#         user_lat, user_lng = 0, 0
 
-    # Read the store_type from query parameters, default to 'supermarket'
-    store_type = request.GET.get('store_type', 'supermarket')
+#     # Read the store_type from query parameters, default to 'supermarket'
+#     store_type = request.GET.get('store_type', 'supermarket')
     
-    # TODO: Replace placeholder data with a real call to a Recipe API
-    recipe = {
-        "name": dish,
-        "cuisine": "Italian",
-        "time": "25 min",
-        "difficulty": "Easy",
-        "rating": "4.8",
-        "reviews": "156",
-        "prep_time": "10 min",
-        "cook_time": "15 min",
-        "servings": "1",
-        "ingredients": [
-            {"name": "Spaghetti", "amount": "400g spaghetti"},
-            {"name": "Pancetta or Guanciale", "amount": "200g, diced"},
-            {"name": "Eggs", "amount": "4 large"},
-            {"name": "Pecorino Romano", "amount": "50g, grated"},
-            {"name": "Parmesan", "amount": "50g, grated"},
-            {"name": "Black Pepper", "amount": "Freshly ground"},
-            {"name": "Salt", "amount": "To taste"}
-        ],
-        "instructions": "Step 1: Cook the spaghetti... (placeholder text)",
-        "nutrition": "Approximately 500 calories per serving.",
-        "image_url": "[Recipe Image URL Placeholder]",
+#     # T: Replace placeholder data with a real call to a Recipe API
+#     recipe = {
+#         "name": dish,
+#         "cuisine": "Italian",
+#         "time": "25 min",
+#         "difficulty": "Easy",
+#         "rating": "4.8",
+#         "reviews": "156",
+#         "prep_time": "10 min",
+#         "cook_time": "15 min",
+#         "servings": "1",
+#         "ingredients": [
+#             {"name": "Spaghetti", "amount": "400g spaghetti"},
+#             {"name": "Pancetta or Guanciale", "amount": "200g, diced"},
+#             {"name": "Eggs", "amount": "4 large"},
+#             {"name": "Pecorino Romano", "amount": "50g, grated"},
+#             {"name": "Parmesan", "amount": "50g, grated"},
+#             {"name": "Black Pepper", "amount": "Freshly ground"},
+#             {"name": "Salt", "amount": "To taste"}
+#         ],
+#         "instructions": "Step 1: Cook the spaghetti... (placeholder text)",
+#         "nutrition": "Approximately 500 calories per serving.",
+#         "image_url": "[Recipe Image URL Placeholder]",
+#     }
+    
+#     # Retrieve nearby markets using the helper function
+#     markets = get_nearby_markets(user_lat, user_lng, radius=2000, store_type=store_type)
+    
+#     context = {
+#         "recipe": recipe,
+#         "lat": user_lat,
+#         "lng": user_lng,
+#         "markets": markets,
+#         "store_type": store_type,
+#     }
+#     return render(request, 'foodmaster/recipe_detail.html', context)
+
+
+
+# def recipe_detail(request, recipe_name):
+#     """
+#     Calls Spoonacular's complexSearch API with additional options
+#     to get detailed recipe information and renders the recipe_detail.html page.
+#     """
+#     # Retrieve your Spoonacular API key from Django settings.
+#     api_key = getattr(settings, "SPOONACULAR_API_KEY", None)
+#     if not api_key:
+#         # In production, raise an error or log an appropriate message.
+#         raise Exception("SPOONACULAR_API_KEY is not configured in your settings.")
+
+#     # The correct API endpoint for searching recipes.
+#     url = "https://api.spoonacular.com/recipes/complexSearch"
+
+#     # Build query parameters.
+#     params = {
+#         "query": recipe_name,               # the search query
+#         "addRecipeInformation": "true",     # to include extended info: ingredients, instructions, etc.
+#         "addRecipeNutrition": "true",       # to include nutrition information if available
+#         "number": "1",                      # retrieve only the top result
+#         "apiKey": api_key                   # your Spoonacular API key
+#     }
+
+#     # Make the API request.
+#     response = requests.get(url, params=params)
+
+#     # Initialize recipe_data as None.
+#     recipe_data = None
+
+#     # Check that the API call was successful.
+#     if response.status_code == 200:
+#         data = response.json()
+#         # Check if the API response contains at least one result.
+#         results = data.get("results", [])
+#         if results:
+#             recipe_data = results[0]
+#     else:
+#         # Optional: log error info for debugging:
+#         print("Spoonacular API error", response.status_code, response.text)
+#     print(results)
+
+#     # Get additional query parameters for the page (if needed)
+#     lat = request.GET.get("lat", "")
+#     lng = request.GET.get("lng", "")
+
+#     context = {
+#         "recipe": recipe_data,  # will be None if no data returned; template fallback values will be used
+#         "lat": lat,
+#         "lng": lng,
+#     }
+
+#     return render(request, "foodmaster/recipe_detail.html", context)
+
+# views.py
+import requests
+from django.shortcuts import render
+from django.conf import settings
+
+def recipe_detail(request, recipe_name):
+    """
+    Calls the Spoonacular "findByIngredients" API endpoint using the recipe_name
+    parameter as the list of ingredients and renders the recipe_detail.html page.
+    """
+    # Retrieve your Spoonacular API key from Django settings
+    api_key = getattr(settings, "SPOONACULAR_API_KEY", None)
+    if not api_key:
+        raise Exception("SPOONACULAR_API_KEY is not configured in your settings.")
+
+    # The API endpoint for finding recipes by ingredients
+    url = "https://api.spoonacular.com/recipes/findByIngredients"
+    
+    # Prepare query parameters.
+    # Use the recipe_name parameter as the ingredients list (e.g., "chicken,tomato")
+    params = {
+        "ingredients": recipe_name,
+        "number": "1",        # Limit to the top recipe result.
+        "ranking": "1",       # Maximize used ingredients.
+        "ignorePantry": "true",
+        "apiKey": api_key,
     }
     
-    # Retrieve nearby markets using the helper function
-    markets = get_nearby_markets(user_lat, user_lng, radius=2000, store_type=store_type)
+    response = requests.get(url, params=params)
+    recipe_data = None
+    if response.status_code == 200:
+        recipes = response.json()  # Returns a list of recipe objects
+        if recipes:
+            recipe_data = recipes[0]
+    else:
+        # Optional: log API errors for debugging.
+        print("Spoonacular API error:", response.status_code, response.text)
+    
+    lat = request.GET.get("lat", "")
+    lng = request.GET.get("lng", "")
     
     context = {
-        "recipe": recipe,
-        "lat": user_lat,
-        "lng": user_lng,
-        "markets": markets,
-        "store_type": store_type,
+        "recipe": recipe_data,
+        "lat": lat,
+        "lng": lng,
     }
-    return render(request, 'foodmaster/recipe_detail.html', context)
+    
+    return render(request, "foodmaster/recipe_detail.html", context)
