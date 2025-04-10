@@ -629,7 +629,7 @@ def get_suggested_users(user):
     return suggested_profiles
 
 
-# Helper function: get the city
+# Helper function: get the city  
 def get_city_from_coordinates(lat, lng):
     """
     Uses the Google Geocoding API to convert a given latitude/longitude
