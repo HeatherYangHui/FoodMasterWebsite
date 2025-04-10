@@ -628,9 +628,95 @@ def get_suggested_users(user):
     cache.set(cache_key, suggested_profiles, 3600)  
     return suggested_profiles
 
+
+# Helper function: get the city
+# def get_city_from_coordinates(lat, lng):
+#     """
+#     Uses the Google Geocoding API to convert lat/lng into a city name.
+#     Returns the city name if found; otherwise, returns "Unknown City".
+#     """
+#     api_key = settings.GOOGLE_PLACES_API_KEY  # or another setting if you use a dedicated key
+#     url = f"https://maps.googleapis.com/maps/api/geocode/json?latlng={lat},{lng}&key={api_key}"
+
+#     try:
+#         response = requests.get(url)
+#         if response.status_code != 200:
+#             print("Geocoding API error:", response.status_code, response.text)
+#             return "Unknown City"
+#         data = response.json()
+#         if data.get("status") == "OK":
+#             # Loop through the results and their address components.
+#             # The "locality" type usually holds the city name.
+#             for result in data.get("results", []):
+#                 for component in result.get("address_components", []):
+#                     if "locality" in component.get("types", []):
+#                         return component.get("long_name")
+#             # Fallback: if no component of type "locality" is found, try "administrative_area_level_1"
+#             for result in data.get("results", []):
+#                 for component in result.get("address_components", []):
+#                     if "administrative_area_level_1" in component.get("types", []):
+#                         return component.get("long_name")
+#         else:
+#             print("Geocoding API returned non-OK status:", data.get("status"))
+#             return "Unknown City"
+#     except Exception as e:
+#         print("Exception during reverse geocoding:", e)
+#     return "Unknown City"
+def get_city_from_coordinates(lat, lng):
+    """
+    Uses the Google Geocoding API to convert a given latitude/longitude
+    into a human-readable city name.
+
+    Optional URL parameters:
+      - language: Set to 'en' for English results.
+
+    Returns the city name if found; otherwise, "Unknown City".
+    """
+    api_key = settings.GOOGLE_PLACES_API_KEY 
+    # Construct the URL with language parameter to enforce English results.
+    url = f"https://maps.googleapis.com/maps/api/geocode/json?latlng={lat},{lng}&key={api_key}&language=en"
+    try:
+        response = requests.get(url)
+        if response.status_code != 200:
+            print("Geocoding API error:", response.status_code, response.text)
+            return "Unknown City"
+        data = response.json()
+        if data.get("status") == "OK":
+            # Loop through results to find an address component of type 'locality'
+            for result in data.get("results", []):
+                for component in result.get("address_components", []):
+                    if "locality" in component.get("types", []):
+                        return component.get("long_name")
+            # Fallback: if no locality is found, try administrative_area_level_1
+            for result in data.get("results", []):
+                for component in result.get("address_components", []):
+                    if "administrative_area_level_1" in component.get("types", []):
+                        return component.get("long_name")
+        else:
+            print("Geocoding API returned non-OK status:", data.get("status"))
+            return "Unknown City"
+    except Exception as e:
+        print("Exception during reverse geocoding:", e)
+    return "Unknown City"
+
+
 @login_required
 def create_post_view(request):
     restaurant_id = request.GET.get('restaurant_id', '')
+    lat_str = request.POST.get('lat', '') or request.GET.get('lat', '0')
+    lng_str = request.POST.get('lng', '') or request.GET.get('lng', '0')
+
+    try:
+        rest_lat = float(lat_str)
+    except ValueError:
+        rest_lat = 0.0
+    try:
+        rest_lng = float(lng_str)
+    except ValueError:
+        rest_lng = 0.0
+
+    city = get_city_from_coordinates(rest_lat, rest_lng)
+    print(city)
     if request.method == 'POST':
         content = request.POST.get('content')
         category = request.POST.get('category', '')
@@ -658,17 +744,6 @@ def create_post_view(request):
         # Create a new Post instance without a photo field
         place_id = request.POST.get('place_id', '') or request.GET.get('place_id', '')
         rest_name = request.POST.get('rest_name', '') or request.GET.get('rest_name', '')
-        lat_str = request.POST.get('lat', '') or request.GET.get('lat', '0')
-        lng_str = request.POST.get('lng', '') or request.GET.get('lng', '0')
-
-        try:
-            rest_lat = float(lat_str)
-        except ValueError:
-            rest_lat = 0.0
-        try:
-            rest_lng = float(lng_str)
-        except ValueError:
-            rest_lng = 0.0
 
         post = Post.objects.create(
             author=request.user,
@@ -677,22 +752,25 @@ def create_post_view(request):
             tags=tags_list,
             shared_restaurant_place_id=place_id,
             shared_restaurant_name=rest_name,
-            shared_restaurant_lat=rest_lat,
-            shared_restaurant_lng=rest_lng,
+            # shared_restaurant_lat=rest_lat,
+            # shared_restaurant_lng=rest_lng,
+            shared_restaurant_city=city,
         )
 
         # Save multiple photos if any
         for processed_photo in photo_files:
             # Assuming a PostImage model exists with a ForeignKey to Post and an ImageField named 'image'
-
             PostImage.objects.create(post=post, image=processed_photo)
         return redirect('social_feed')
+    
     context = {
         'place_id': request.GET.get('place_id', ''),
         'rest_name': request.GET.get('rest_name', ''),
         'lat': request.GET.get('lat', '0'),
         'lng': request.GET.get('lng', '0'),
+        'city': city,
     }
+    print(context)
     return render(request, 'foodmaster/create_post.html', context)
 
 

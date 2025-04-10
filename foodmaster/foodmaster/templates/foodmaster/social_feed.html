@@ -109,8 +109,11 @@
                     style="text-decoration: none; color: #333; font-weight: bold;">
                     {{ post.shared_restaurant_name }}
                   </a>
-                  <p style="font-size: 13px; color: #666; margin-top: 4px;">
+                  {% comment %} <p style="font-size: 13px; color: #666; margin-top: 4px;">
                     ({{ post.shared_restaurant_lat }}, {{ post.shared_restaurant_lng }})
+                  </p> {% endcomment %}
+                  <p style="font-size: 13px; color: #666; margin-top: 4px;">
+                    Location: <strong>{{ post.shared_restaurant_city }}</strong>
                   </p>
                 </div>
               {% endif %}
