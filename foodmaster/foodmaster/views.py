@@ -585,7 +585,12 @@ def social_feed_view(request):
     
     return render(request, 'foodmaster/social_feed.html', context)
 
+<<<<<<< Updated upstream
 
+=======
+###Cecilia test
+###Eurus test
+>>>>>>> Stashed changes
 def get_suggested_users(user):
     """
     Recommend other users based on mutual follows.
