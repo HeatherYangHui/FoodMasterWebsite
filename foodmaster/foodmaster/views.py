@@ -630,38 +630,6 @@ def get_suggested_users(user):
 
 
 # Helper function: get the city
-# def get_city_from_coordinates(lat, lng):
-#     """
-#     Uses the Google Geocoding API to convert lat/lng into a city name.
-#     Returns the city name if found; otherwise, returns "Unknown City".
-#     """
-#     api_key = settings.GOOGLE_PLACES_API_KEY  # or another setting if you use a dedicated key
-#     url = f"https://maps.googleapis.com/maps/api/geocode/json?latlng={lat},{lng}&key={api_key}"
-
-#     try:
-#         response = requests.get(url)
-#         if response.status_code != 200:
-#             print("Geocoding API error:", response.status_code, response.text)
-#             return "Unknown City"
-#         data = response.json()
-#         if data.get("status") == "OK":
-#             # Loop through the results and their address components.
-#             # The "locality" type usually holds the city name.
-#             for result in data.get("results", []):
-#                 for component in result.get("address_components", []):
-#                     if "locality" in component.get("types", []):
-#                         return component.get("long_name")
-#             # Fallback: if no component of type "locality" is found, try "administrative_area_level_1"
-#             for result in data.get("results", []):
-#                 for component in result.get("address_components", []):
-#                     if "administrative_area_level_1" in component.get("types", []):
-#                         return component.get("long_name")
-#         else:
-#             print("Geocoding API returned non-OK status:", data.get("status"))
-#             return "Unknown City"
-#     except Exception as e:
-#         print("Exception during reverse geocoding:", e)
-#     return "Unknown City"
 def get_city_from_coordinates(lat, lng):
     """
     Uses the Google Geocoding API to convert a given latitude/longitude
