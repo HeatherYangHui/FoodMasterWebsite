@@ -48,8 +48,9 @@ class Post(models.Model):
     shared_from = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='shares')
     shared_restaurant_place_id = models.CharField(max_length=255, blank=True, null=True)
     shared_restaurant_name = models.CharField(max_length=255, blank=True, null=True)
-    shared_restaurant_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    shared_restaurant_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    # shared_restaurant_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    # shared_restaurant_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    shared_restaurant_city = models.CharField(max_length=255, blank=True, null=True)
     def total_likes(self):
         return self.likes.count()
     

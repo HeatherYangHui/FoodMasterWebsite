@@ -6,6 +6,6 @@ psycopg2-binary>=2.9
 whitenoise>=6.0
 sqlparse>=0.4
 requests
-jwt
+PyJWT
 GDAL==3.10.2
 pytz

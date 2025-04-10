@@ -628,9 +628,63 @@ def get_suggested_users(user):
     cache.set(cache_key, suggested_profiles, 3600)  
     return suggested_profiles
 
+
+# Helper function: get the city
+def get_city_from_coordinates(lat, lng):
+    """
+    Uses the Google Geocoding API to convert a given latitude/longitude
+    into a human-readable city name.
+
+    Optional URL parameters:
+      - language: Set to 'en' for English results.
+
+    Returns the city name if found; otherwise, "Unknown City".
+    """
+    api_key = settings.GOOGLE_PLACES_API_KEY 
+    # Construct the URL with language parameter to enforce English results.
+    url = f"https://maps.googleapis.com/maps/api/geocode/json?latlng={lat},{lng}&key={api_key}&language=en"
+    try:
+        response = requests.get(url)
+        if response.status_code != 200:
+            print("Geocoding API error:", response.status_code, response.text)
+            return "Unknown City"
+        data = response.json()
+        if data.get("status") == "OK":
+            # Loop through results to find an address component of type 'locality'
+            for result in data.get("results", []):
+                for component in result.get("address_components", []):
+                    if "locality" in component.get("types", []):
+                        return component.get("long_name")
+            # Fallback: if no locality is found, try administrative_area_level_1
+            for result in data.get("results", []):
+                for component in result.get("address_components", []):
+                    if "administrative_area_level_1" in component.get("types", []):
+                        return component.get("long_name")
+        else:
+            print("Geocoding API returned non-OK status:", data.get("status"))
+            return "Unknown City"
+    except Exception as e:
+        print("Exception during reverse geocoding:", e)
+    return "Unknown City"
+
+
 @login_required
 def create_post_view(request):
     restaurant_id = request.GET.get('restaurant_id', '')
+    lat_str = request.POST.get('lat', '') or request.GET.get('lat', '0')
+    lng_str = request.POST.get('lng', '') or request.GET.get('lng', '0')
+
+    try:
+        rest_lat = float(lat_str)
+    except ValueError:
+        rest_lat = 0.0
+    try:
+        rest_lng = float(lng_str)
+    except ValueError:
+        rest_lng = 0.0
+
+    city = get_city_from_coordinates(rest_lat, rest_lng)
+    print(city)
     if request.method == 'POST':
         content = request.POST.get('content')
         category = request.POST.get('category', '')
@@ -658,17 +712,6 @@ def create_post_view(request):
         # Create a new Post instance without a photo field
         place_id = request.POST.get('place_id', '') or request.GET.get('place_id', '')
         rest_name = request.POST.get('rest_name', '') or request.GET.get('rest_name', '')
-        lat_str = request.POST.get('lat', '') or request.GET.get('lat', '0')
-        lng_str = request.POST.get('lng', '') or request.GET.get('lng', '0')
-
-        try:
-            rest_lat = float(lat_str)
-        except ValueError:
-            rest_lat = 0.0
-        try:
-            rest_lng = float(lng_str)
-        except ValueError:
-            rest_lng = 0.0
 
         post = Post.objects.create(
             author=request.user,
@@ -677,22 +720,25 @@ def create_post_view(request):
             tags=tags_list,
             shared_restaurant_place_id=place_id,
             shared_restaurant_name=rest_name,
-            shared_restaurant_lat=rest_lat,
-            shared_restaurant_lng=rest_lng,
+            # shared_restaurant_lat=rest_lat,
+            # shared_restaurant_lng=rest_lng,
+            shared_restaurant_city=city,
         )
 
         # Save multiple photos if any
         for processed_photo in photo_files:
             # Assuming a PostImage model exists with a ForeignKey to Post and an ImageField named 'image'
-
             PostImage.objects.create(post=post, image=processed_photo)
         return redirect('social_feed')
+    
     context = {
         'place_id': request.GET.get('place_id', ''),
         'rest_name': request.GET.get('rest_name', ''),
         'lat': request.GET.get('lat', '0'),
         'lng': request.GET.get('lng', '0'),
+        'city': city,
     }
+    print(context)
     return render(request, 'foodmaster/create_post.html', context)
 
 
@@ -822,13 +868,36 @@ def share_post_view(request, post_id):
 # -----------------------------
 # Recipe Search View
 # -----------------------------
+# def recipe_search_view(request):
+#     """
+#     Renders the recipe search page with an input form.
+#     If a dish parameter is provided, validates it and then redirects to the recipe_detail view.
+#     """
+#     dish = request.GET.get('dish', '').strip()
+#     # First, try getting from GET parameters
+#     user_lat = request.GET.get('lat')
+#     user_lng = request.GET.get('lng')
+    
+#     # Optionally, try to retrieve from session (if you stored these in a prior view)
+#     if not user_lat or not user_lng:
+#         user_lat = request.session.get('lat', '')
+#         user_lng = request.session.get('lng', '')
+    
+#     if dish:
+#         target = reverse('recipe_detail')
+#         return redirect(f"{target}?dish={dish}&lat={user_lat}&lng={user_lng}")
+#     else:
+#         return render(request, 'foodmaster/recipe_search.html')
+
+
+
 def recipe_search_view(request):
     """
     Renders the recipe search page with an input form.
     If a dish parameter is provided, validates it and then redirects to the recipe_detail view.
     """
     dish = request.GET.get('dish', '').strip()
-    # First, try getting from GET parameters
+    # First, try getting location from GET parameters.
     user_lat = request.GET.get('lat')
     user_lng = request.GET.get('lng')
     
@@ -838,10 +907,13 @@ def recipe_search_view(request):
         user_lng = request.session.get('lng', '')
     
     if dish:
+        # Pass the dish as the recipe_name to satisfy the URL pattern.
         target = reverse('recipe_detail')
+        # Redirect to the recipe_detail page with lat and lng as query parameters.
         return redirect(f"{target}?dish={dish}&lat={user_lat}&lng={user_lng}")
     else:
         return render(request, 'foodmaster/recipe_search.html')
+
 
 
 # -----------------------------
@@ -939,16 +1011,65 @@ def get_nearby_markets(lat, lng, radius=1000, store_type='supermarket'):
     return markets
 
 
+'''
+def recipe_detail(request, recipe_name):
+    """
+    Calls the Spoonacular "findByIngredients" API endpoint using the recipe_name
+    parameter as the list of ingredients and renders the recipe_detail.html page.
+    """
+    # Retrieve your Spoonacular API key from Django settings
+    api_key = getattr(settings, "SPOONACULAR_API_KEY", None)
+    if not api_key:
+        raise Exception("SPOONACULAR_API_KEY is not configured in your settings.")
+
+    # The API endpoint for finding recipes by ingredients
+    url = "https://api.spoonacular.com/recipes/findByIngredients"
+    
+    # Prepare query parameters.
+    # Use the recipe_name parameter as the ingredients list (e.g., "chicken,tomato")
+    params = {
+        "ingredients": recipe_name,
+        "number": "1",        # Limit to the top recipe result.
+        "ranking": "1",       # Maximize used ingredients.
+        "ignorePantry": "true",
+        "apiKey": api_key,
+    }
+    
+    response = requests.get(url, params=params)
+    recipe_data = None
+    if response.status_code == 200:
+        recipes = response.json()  # Returns a list of recipe objects
+        if recipes:
+            recipe_data = recipes[0]
+    else:
+        # Optional: log API errors for debugging.
+        print("Spoonacular API error:", response.status_code, response.text)
+    
+    lat = request.GET.get("lat", "")
+    lng = request.GET.get("lng", "")
+    
+    context = {
+        "recipe": recipe_data,
+        "lat": lat,
+        "lng": lng,
+    }
+    
+    return render(request, "foodmaster/recipe_detail.html", context)
+'''
+
 def recipe_detail_view(request):
     """
-    Renders the recipe detail page based on the dish parameter.    
+    Combined view that retrieves recipe information based on the 'dish' parameter via the Spoonacular API.
+    If the API call fails, a placeholder recipe is used.
+    Additionally, the user's location (lat/lng) and a store_type filter (defaulting to 'supermarket') are used
+    to fetch nearby market data.
     """
     dish = request.GET.get('dish', '').strip()
     if not dish:
         messages.error(request, "No dish provided.")
         return redirect('recipe_search')
     
-    # Read location; if not present, default to 0.
+    # Retrieve the user's location from URL; default to 0 if not provided.
     user_lat = request.GET.get('lat', '0')
     user_lng = request.GET.get('lng', '0')
     try:
@@ -957,42 +1078,57 @@ def recipe_detail_view(request):
     except ValueError:
         user_lat, user_lng = 0, 0
 
-    # Read the store_type from query parameters, default to 'supermarket'
+    # Get the store_type from URL (default is 'supermarket')
     store_type = request.GET.get('store_type', 'supermarket')
     
-    # TODO: Replace placeholder data with a real call to a Recipe API
-    recipe = {
-        "name": dish,
-        "cuisine": "Italian",
-        "time": "25 min",
-        "difficulty": "Easy",
-        "rating": "4.8",
-        "reviews": "156",
-        "prep_time": "10 min",
-        "cook_time": "15 min",
-        "servings": "1",
-        "ingredients": [
-            {"name": "Spaghetti", "amount": "400g spaghetti"},
-            {"name": "Pancetta or Guanciale", "amount": "200g, diced"},
-            {"name": "Eggs", "amount": "4 large"},
-            {"name": "Pecorino Romano", "amount": "50g, grated"},
-            {"name": "Parmesan", "amount": "50g, grated"},
-            {"name": "Black Pepper", "amount": "Freshly ground"},
-            {"name": "Salt", "amount": "To taste"}
-        ],
-        "instructions": "Step 1: Cook the spaghetti... (placeholder text)",
-        "nutrition": "Approximately 500 calories per serving.",
-        "image_url": "[Recipe Image URL Placeholder]",
-    }
+    # Attempt to retrieve recipe details from Spoonacular.
+    api_key = getattr(settings, "SPOONACULAR_API_KEY", None)
+    recipe_data = None
+    if api_key:
+        url = "https://api.spoonacular.com/recipes/findByIngredients"
+        params = {
+            "ingredients": dish,
+            "number": "1",
+            "ranking": "1",
+            "ignorePantry": "true",
+            "apiKey": api_key,
+        }
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            recipes = response.json()  # Should be a list of recipes.
+            if recipes:
+                recipe_data = recipes[0]
+        else:
+            print("Spoonacular API error:", response.status_code, response.text)
     
-    # Retrieve nearby markets using the helper function
+    # Fallback: placeholder recipe data if API returns nothing.
+    if not recipe_data:
+        recipe_data = {
+            "name": dish,
+            "cuisine": "N/A",
+            "time": "N/A",
+            "difficulty": "N/A",
+            "rating": "N/A",
+            "reviews": "N/A",
+            "prep_time": "N/A",
+            "cook_time": "N/A",
+            "servings": "N/A",
+            "ingredients": [
+                {"N/A": "N/A"},
+            ],
+            "instructions": "N/A",
+            "nutrition": "N/A",
+            "image_url": "N/A",
+        }
+    
+    # Retrieve nearby markets using the user's coordinates and selected store_type.
     markets = get_nearby_markets(user_lat, user_lng, radius=2000, store_type=store_type)
     
     context = {
-        "recipe": recipe,
+        "recipe": recipe_data,
         "lat": user_lat,
         "lng": user_lng,
         "markets": markets,
         "store_type": store_type,
     }
-    return render(request, 'foodmaster/recipe_detail.html', context)
+    return render(request, "foodmaster/recipe_detail.html", context)
