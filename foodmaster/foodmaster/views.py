@@ -1134,6 +1134,7 @@ def recipe_detail_view(request):
         "markets": markets,
         "store_type": store_type,
     }
-    return render(request, "foodmaster/recipe_detail.html", context)
 
+    return render(request, "foodmaster/recipe_detail.html", context)
 ###second time test Eurus
+##second time from Cecilia
