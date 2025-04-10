@@ -1136,5 +1136,9 @@ def recipe_detail_view(request):
     return render(request, "foodmaster/recipe_detail.html", context)
 
 ###second time test Eurus
+<<<<<<< Updated upstream
 ##second time from Cecilia
 
+=======
+##second time from Cecilia
+>>>>>>> Stashed changes
