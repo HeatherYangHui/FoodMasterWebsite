@@ -585,12 +585,10 @@ def social_feed_view(request):
     
     return render(request, 'foodmaster/social_feed.html', context)
 
-<<<<<<< Updated upstream
 
-=======
 ###Cecilia test
 ###Eurus test
->>>>>>> Stashed changes
+
 def get_suggested_users(user):
     """
     Recommend other users based on mutual follows.
@@ -635,7 +633,7 @@ def get_suggested_users(user):
     return suggested_profiles
 
 
-# Helper function: get the city
+# Helper function: get the city  
 def get_city_from_coordinates(lat, lng):
     """
     Uses the Google Geocoding API to convert a given latitude/longitude
