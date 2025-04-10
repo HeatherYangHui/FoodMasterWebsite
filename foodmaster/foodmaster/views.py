@@ -586,6 +586,8 @@ def social_feed_view(request):
     return render(request, 'foodmaster/social_feed.html', context)
 
 ###Cecilia test
+###Eurus test
+###Stashed changes
 def get_suggested_users(user):
     """
     Recommend other users based on mutual follows.
@@ -1134,7 +1136,5 @@ def recipe_detail_view(request):
     }
 
     return render(request, "foodmaster/recipe_detail.html", context)
-
 ###second time test Eurus
 ##second time from Cecilia
-
