@@ -9,15 +9,16 @@
     <!-- LEFT COLUMN: Recipe Image + Nearby Markets -->
     <div style="flex: 1;">
       <!-- Recipe Image -->
-      <div class="recipe-image" style="
-        width: 100%;
-        height: 200px;
-        background-color: #f0f0f0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 20px;
-      ">
+      <div class="recipe-image"
+           style="
+             width: 100%;
+             height: 200px;
+             background-color: #f0f0f0;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             margin-bottom: 20px;
+           ">
         {% if recipe.image %}
           <img src="{{ recipe.image }}" alt="{{ recipe.title }}" style="max-width: 100%; max-height: 100%;">
         {% else %}
@@ -56,6 +57,7 @@
             <option value="supermarket" {% if store_type == "supermarket" %}selected{% endif %}>Supermarket</option>
           </select>
         </form>
+        
         {% if markets and markets|length > 0 %}
           {% for market in markets %}
             <div class="market-card" style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
@@ -114,8 +116,9 @@
           {% endif %}
            • {{ recipe.readyInMinutes|default:"25" }} min • Easy •
         </span>
-        <span>⭐ {{ recipe.aggregateLikes|default:"4.8" }} ({{ recipe.reviews|default:"156" }} reviews)</span>
+        <!-- <span>⭐ {{ recipe.aggregateLikes|default:"4.8" }} ({{ recipe.reviews|default:"156" }} reviews)</span> -->
       </div>
+      
       <div style="display: flex; gap: 10px; margin-bottom: 30px;">
         <button class="btn btn-primary">Add to Shopping List</button>
         <button class="btn btn-secondary">Save Recipe</button>
@@ -134,16 +137,26 @@
         </div>
       </div>
       
+      <!-- Tabs -->
       <div class="tabs" style="display: flex; gap: 10px; margin-bottom: 20px;">
-        <div class="tab active" style="cursor: pointer; font-weight: bold;">Ingredients</div>
-        <div class="tab" style="cursor: pointer;">Instructions</div>
-        <div class="tab" style="cursor: pointer;">Nutrition</div>
-        <div class="tab" style="cursor: pointer;">Reviews</div>
+        <!-- Use data-target to map each tab to its corresponding content container -->
+        <div class="tab active" data-target="ingredients-content" style="cursor: pointer; font-weight: bold;">
+          Ingredients
+        </div>
+        <div class="tab" data-target="instructions-content" style="cursor: pointer;">
+          Instructions
+        </div>
+        <div class="tab" data-target="nutrition-content" style="cursor: pointer;">
+          Nutrition
+        </div>
+        <!-- <div class="tab" data-target="reviews-content" style="cursor: pointer;">
+          Reviews
+        </div> -->
       </div>
       
-      <!-- Ingredient List (Checkboxes Instead of "Add" Buttons) -->
-      <!-- Ingredient List (Checkboxes Instead of "Add" Buttons) -->
-      <div class="ingredient-list">
+      <!-- Tab Contents -->
+      <!-- Ingredients -->
+      <div id="ingredients-content" class="tab-content">
         <h3>Ingredients</h3>
         {% if recipe and recipe.displayIngredients %}
           {% for ingredient in recipe.displayIngredients %}
@@ -159,93 +172,9 @@
         <button class="btn btn-primary" style="width: 100%; margin-top: 20px;">Add All to Shopping List</button>
       </div>
 
-      <!-- <div class="ingredient-list">
-        <h3>Ingredients</h3>
-        {% if recipe %}
-          {% if recipe.usedIngredients %}
-            <h4>Ingredients You Have:</h4>
-            {% for ingredient in recipe.usedIngredients %}
-              <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                <input type="checkbox" style="transform: scale(1.3);" />
-                <span>{{ ingredient.original }}</span>
-              </div>
-            {% endfor %}
-          {% endif %}
-          
-          {% if recipe.missedIngredients %}
-            <h4>Ingredients You Need:</h4>
-            {% for ingredient in recipe.missedIngredients %}
-              <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                <input type="checkbox" style="transform: scale(1.3);" />
-                <span>{{ ingredient.original }}</span>
-              </div>
-            {% endfor %}
-          {% endif %}
-        {% else %}
-          <p>No ingredient information available.</p>
-        {% endif %}
-        
-        <button class="btn btn-primary" style="width: 100%; margin-top: 20px;">Add All to Shopping List</button>
-      </div> -->
-      <!-- <div class="ingredient-list">
-        <h3>Ingredients</h3>
-        {% if recipe and recipe.extendedIngredients %}
-          {% for ingredient in recipe.extendedIngredients %}
-            <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-              <input type="checkbox" style="transform: scale(1.3);" />
-              <span>{{ ingredient.original }}</span>
-            </div>
-          {% endfor %}
-        {% else %}
-          <p>No ingredient information available.</p>
-        {% endif %}
-        <button class="btn btn-primary" style="width: 100%; margin-top: 20px;">Add All to Shopping List</button>
-      </div> -->
-      <!-- <div class="ingredient-list">
-        <h3>Ingredients</h3>
-        {% if recipe.extendedIngredients %}
-          {% for ingredient in recipe.extendedIngredients %}
-          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-            <input type="checkbox" style="transform: scale(1.3);" />
-            <span>{{ ingredient.original }}</span>
-          </div>
-          {% endfor %}
-        {% else %}
-          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-            <input type="checkbox" style="transform: scale(1.3);" />
-            <span>400g spaghetti</span>
-          </div>
-          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-            <input type="checkbox" style="transform: scale(1.3);" />
-            <span>200g pancetta or guanciale, diced</span>
-          </div>
-          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-            <input type="checkbox" style="transform: scale(1.3);" />
-            <span>4 large eggs</span>
-          </div>
-          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-            <input type="checkbox" style="transform: scale(1.3);" />
-            <span>50g Pecorino Romano cheese, grated</span>
-          </div>
-          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-            <input type="checkbox" style="transform: scale(1.3);" />
-            <span>50g Parmesan cheese, grated</span>
-          </div>
-          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-            <input type="checkbox" style="transform: scale(1.3);" />
-            <span>Freshly ground black pepper</span>
-          </div>
-          <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-            <input type="checkbox" style="transform: scale(1.3);" />
-            <span>Salt, to taste</span>
-          </div>
-        {% endif %}
-        
-        <button class="btn btn-primary" style="width: 100%; margin-top: 20px;">Add All to Shopping List</button>
-      </div> -->
-      
-      <!-- Instructions Section -->
-      <div class="instructions">
+      <!-- Instructions -->
+      <!-- Hide by default (use inline style or a CSS class) -->
+      <div id="instructions-content" class="tab-content" style="display: none;">
         <h3>Instructions</h3>
         {% if recipe.instructions %}
           <p>{{ recipe.instructions|safe }}</p>
@@ -258,8 +187,39 @@
         {% endif %}
       </div>
       
-      <!-- Nutrition Section -->
-      <div class="nutrition">
+      <!-- Nutrition -->
+      <div id="nutrition-content" class="tab-content" style="display: none;">
+        <h3>Nutrition</h3>
+        {% if recipe.nutrition and recipe.nutrition.nutrients %}
+          <table class="table table-striped" style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Nutrient</th>
+                <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Amount</th>
+                <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">% Daily Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for nutrient in recipe.nutrition.nutrients %}
+                <tr>
+                  <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{ nutrient.title }}</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{ nutrient.amount }} {{ nutrient.unit }}</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #ddd;">
+                    {% if nutrient.percentOfDailyNeeds %}
+                      {{ nutrient.percentOfDailyNeeds }}%
+                    {% else %}
+                      N/A
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>No nutritional information available.</p>
+        {% endif %}
+      </div>
+      <!-- <div id="nutrition-content" class="tab-content" style="display: none;">
         <h3>Nutrition</h3>
         {% if recipe.nutrition and recipe.nutrition.nutrients %}
           <ul>
@@ -270,15 +230,15 @@
         {% else %}
           <p>No nutritional information available.</p>
         {% endif %}
-      </div>
+      </div> -->
       
-      <!-- Reviews Section -->
-      <div class="reviews">
+      <!-- Reviews -->
+      <!-- <div id="reviews-content" class="tab-content" style="display: none;">
         <h3>Reviews</h3>
         <p>No reviews available. Be the first to review this recipe!</p>
       </div>
+       -->
     </div>
-    
   </div>
 </div>
 {% endblock %}
@@ -288,11 +248,24 @@
   document.addEventListener('DOMContentLoaded', function() {
     // Tab functionality
     const tabs = document.querySelectorAll('.tab');
+    const contents = document.querySelectorAll('.tab-content');
+
     tabs.forEach(tab => {
       tab.addEventListener('click', function() {
+        // Remove active class from all tabs
         tabs.forEach(t => t.classList.remove('active'));
+        // Hide all content sections
+        contents.forEach(content => content.style.display = 'none');
+        
+        // Mark the clicked tab as active
         this.classList.add('active');
-        // In a real app, you would show/hide content based on the selected tab
+        
+        // Show the corresponding content
+        const targetId = this.getAttribute('data-target');
+        const targetContent = document.getElementById(targetId);
+        if (targetContent) {
+          targetContent.style.display = 'block';
+        }
       });
     });
   });
