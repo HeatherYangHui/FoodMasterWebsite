@@ -202,7 +202,7 @@
             <tbody>
               {% for nutrient in recipe.nutrition.nutrients %}
                 <tr>
-                  <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{ nutrient.title }}</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{ nutrient.name }}</td>
                   <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{ nutrient.amount }} {{ nutrient.unit }}</td>
                   <td style="padding: 8px; border-bottom: 1px solid #ddd;">
                     {% if nutrient.percentOfDailyNeeds %}

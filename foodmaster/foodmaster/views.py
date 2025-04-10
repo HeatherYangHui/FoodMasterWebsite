@@ -1133,6 +1133,7 @@ def recipe_detail_view(request):
             "nutrition": {"nutrients": []},
             "image": "N/A",
         }
+    print(recipe_data)
     
     # Retrieve nearby markets using the user's coordinates and selected store_type.
     markets = get_nearby_markets(user_lat, user_lng, radius=2000, store_type=store_type)
@@ -1144,7 +1145,9 @@ def recipe_detail_view(request):
         "markets": markets,
         "store_type": store_type,
     }
+    
     return render(request, "foodmaster/recipe_detail.html", context)
+
 
 
 # def recipe_detail_view(request):
