@@ -177,7 +177,8 @@ GEOS_LIBRARY_PATH = '/opt/homebrew/Cellar/geos/3.13.1/lib/libgeos_c.dylib'
 
 
 GOOGLE_PLACES_API_KEY = 'AIzaSyCJ69ANDmjudhXk0wjWtDk7MDrdvx9OnRo'
-SPOONACULAR_API_KEY = 'a6c93b08c89844bbbcec64f32ad38dbb'
+SPOONACULAR_API_KEY = '4377e68f110743308ff6f3d1e193b39a'
+# 'a6c93b08c89844bbbcec64f32ad38dbb'
 
 
 
