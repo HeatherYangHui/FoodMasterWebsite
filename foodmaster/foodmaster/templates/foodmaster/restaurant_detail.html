@@ -69,6 +69,15 @@
           <button class="btn btn-primary">Make Reservation</button>
         </a>
         <button class="btn btn-secondary">Save</button>
+        <button class="btn btn-secondary">View Menu</button>
+        
+        <form action="{% url 'save_restaurant' %}" method="post" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="place_id" value="{{ restaurant.id }}">
+          <input type="hidden" name="name" value="{{ restaurant.name }}">
+          <input type="hidden" name="address" value="{{ restaurant.address }}">
+          <button type="submit" class="btn btn-secondary">Save</button>
+        </form>
 
         <form action="{% url 'create_post' %}" method="get">
           <input type="hidden" name="place_id" value="{{ restaurant.id }}">

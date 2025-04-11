@@ -20,6 +20,7 @@ from .models import Restaurant
 from .models import Post
 from .models import Profile
 from .models import PostImage
+from .models import SavedRestaurant
 
 from django.views.decorators.http import require_POST
 from .models import Comment
@@ -88,6 +89,26 @@ def register_view(request):
         return redirect('dashboard')
     else:
         return render(request, 'foodmaster/register.html')
+    
+
+@login_required
+def save_restaurant_view(request):
+    if request.method == 'POST':
+        place_id = request.POST.get('place_id')
+        name = request.POST.get('name')
+        address = request.POST.get('address', '')
+        if not place_id or not name:
+            return JsonResponse({'success': False, 'error': 'Missing required information.'}, status=400)
+        saved, created = SavedRestaurant.objects.get_or_create(
+            user=request.user,
+            place_id=place_id,
+            defaults={'name': name, 'address': address}
+        )
+        if created:
+            return JsonResponse({'success': True, 'message': 'Restaurant saved.'})
+        else:
+            return JsonResponse({'success': True, 'message': 'Restaurant already saved.'})
+    return JsonResponse({'success': False, 'error': 'Invalid method.'}, status=400)
 
 
 # -----------------------------

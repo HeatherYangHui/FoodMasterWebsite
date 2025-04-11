@@ -4,6 +4,20 @@ from django.conf import settings
 
 # Create your models here. 
 # test push
+
+
+class SavedRestaurant(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='saved_restaurants')
+    place_id = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    address = models.TextField(blank=True, null=True)
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'place_id')
+
+    def __str__(self):
+        return f"{self.user.username} saved {self.name}"
 class Restaurant(models.Model):
     place_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
     name = models.CharField(max_length=255)
