@@ -1,20 +1,35 @@
 {% extends 'foodmaster/base.html' %}
-{% block title %}Saved Restaurants{% endblock %}
+{% block title %}Saved Items{% endblock %}
 {% block content %}
 <div class="wireframe-section">
   <h2>Saved Restaurants</h2>
-  {% if saved_list %}
+  {% if saved_restaurants %}
     <div style="display: flex; flex-direction: column; gap: 16px;">
-    {% for saved in saved_list %}
-      <div style="border: 1px solid #eee; border-radius: 8px; padding: 12px;">
-        <h3>{{ saved.name }}</h3>
-        <p>{{ saved.address }}</p>
-        <a href="{% url 'restaurant_detail' saved.place_id %}" class="btn btn-primary">View Details</a>
-      </div>
-    {% endfor %}
+      {% for saved in saved_restaurants %}
+        <div style="border: 1px solid #eee; border-radius: 8px; padding: 12px;">
+          <h3>{{ saved.name }}</h3>
+          <p>{{ saved.address }}</p>
+          <a href="{% url 'restaurant_detail' saved.place_id %}" class="btn btn-primary">View Restaurant</a>
+        </div>
+      {% endfor %}
     </div>
   {% else %}
     <p>You have not saved any restaurants yet.</p>
+  {% endif %}
+  
+  <h2 style="margin-top: 40px;">Saved Recipes</h2>
+  {% if saved_recipes %}
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      {% for saved in saved_recipes %}
+        <div style="border: 1px solid #eee; border-radius: 8px; padding: 12px;">
+          <h3>{{ saved.title }}</h3>
+          <p>Saved on {{ saved.saved_at|date:"M d, Y" }}</p>
+          <a href="{% url 'recipe_detail' %}?dish={{ saved.title }}" class="btn btn-primary">View Recipe</a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>You have not saved any recipes yet.</p>
   {% endif %}
 </div>
 {% endblock %}

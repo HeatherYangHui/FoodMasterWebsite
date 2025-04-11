@@ -21,6 +21,8 @@ from .models import Post
 from .models import Profile
 from .models import PostImage
 from .models import SavedRestaurant
+from .models import SavedRecipe
+
 
 from django.views.decorators.http import require_POST
 from .models import Comment
@@ -37,6 +39,7 @@ from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import sys
+from urllib.parse import unquote
 
 
 
@@ -1138,29 +1141,63 @@ def recipe_detail_view(request):
             "nutrition": {"nutrients": []},
             "image": "N/A",
         }
-    print(recipe_data)
+    #print(recipe_data)
     
     # Retrieve nearby markets using the user's coordinates and selected store_type.
     markets = get_nearby_markets(user_lat, user_lng, radius=2000, store_type=store_type)
     
+    is_recipe_saved = False
+    if request.user.is_authenticated:
+        is_recipe_saved = request.user.saved_recipes.filter(recipe_id=recipe_data.get('title', '')).exists()
+
     context = {
         "recipe": recipe_data,
         "lat": user_lat,
         "lng": user_lng,
         "markets": markets,
         "store_type": store_type,
+        'is_recipe_saved': is_recipe_saved,
     }
     
     return render(request, "foodmaster/recipe_detail.html", context)
 
 
 
+
+@login_required
+@require_POST
+def toggle_save_recipe_view(request):
+    """
+    Toggle saved recipe for the current user.
+    Expect POST parameters: recipe_id, title.
+    If a SavedRecipe record exists for this user and recipe_id, delete it (i.e. unsave);
+    otherwise, create it (save).
+    Returns a JSON response with the new state ('saved' or 'unsaved').
+    """
+    recipe_title = request.POST.get('title')
+    if not recipe_title:
+        return JsonResponse({'success': False, 'error': 'Missing recipe title.'}, status=400)
+
+    try:
+        saved = SavedRecipe.objects.get(user=request.user, recipe_id=recipe_title)
+        saved.delete()
+        new_state = 'unsaved'
+    except SavedRecipe.DoesNotExist:
+        SavedRecipe.objects.create(user=request.user, recipe_id=recipe_title, title=recipe_title)
+        new_state = 'saved'
+    
+    return JsonResponse({'success': True, 'state': new_state})
+
 # -----------------------------
 # Saved View
 # -----------------------------
 
 @login_required
-def saved_restaurants_view(request):
-    saved_list = SavedRestaurant.objects.filter(user=request.user).order_by('-saved_at')
-    context = {'saved_list': saved_list}
+def saved_view(request):
+    saved_restaurants = SavedRestaurant.objects.filter(user=request.user).order_by('-saved_at')
+    saved_recipes = SavedRecipe.objects.filter(user=request.user).order_by('-saved_at')
+    context = {
+        'saved_restaurants': saved_restaurants,
+        'saved_recipes': saved_recipes,
+    }
     return render(request, 'foodmaster/saved.html', context)

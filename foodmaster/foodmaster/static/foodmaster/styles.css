@@ -583,3 +583,25 @@ footer {
   color: white;
   border: none;
 }
+
+.btn-save-recipe {
+  padding: 10px 20px;
+    border-radius: 20px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+
+}
+
+.btn-save-recipe.saved {
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: #71787d; 
+  color: white;
+  border: none;
+}
