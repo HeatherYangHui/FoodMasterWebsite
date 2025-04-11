@@ -1,0 +1,83 @@
+{% extends 'foodmaster/base.html' %}
+{% load socialaccount %}
+
+{% block title %}Food Master - Sign In{% endblock %}
+
+{% block content %}
+<div class="wireframe-section" style="max-width: 400px; margin: 0 auto;">
+  <h2 style="text-align: center; margin-bottom: 20px;">Sign In</h2>
+  
+  {# Display allauth or Django messages if any #}
+  {% if messages %}
+    <ul style="list-style: none; padding: 0; margin-bottom: 20px;">
+      {% for message in messages %}
+        <li style="padding: 10px; background-color: #f8d7da; color: #721c24; border-radius: 4px; margin-bottom: 10px;">
+          {{ message }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  
+  {# If the form has non-field errors, show them #}
+  {% if form.non_field_errors %}
+    <div style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin-bottom: 20px;">
+      {% for error in form.non_field_errors %}
+        {{ error }}
+      {% endfor %}
+    </div>
+  {% endif %}
+  
+  {# The Allauth login form #}
+  <form method="post" action="{% url 'account_login' %}" style="margin-bottom: 20px;">
+    {% csrf_token %}
+
+    {# Username/Email #}
+    <div style="margin-bottom: 15px;">
+      <label for="id_login" style="display: block; margin-bottom: 5px; font-size: 16px;">Email / Username</label>
+      <input
+        id="id_login"
+        type="text"
+        name="login"
+        required
+        placeholder="Email or Username"
+        style="width: 100%; padding: 8px; font-size: 16px;"
+      >
+    </div>
+
+    {# Password #}
+    <div style="margin-bottom: 15px;">
+      <label for="id_password" style="display: block; margin-bottom: 5px; font-size: 16px;">Password</label>
+      <input
+        id="id_password"
+        type="password"
+        name="password"
+        required
+        placeholder="********"
+        style="width: 100%; padding: 8px; font-size: 16px;"
+      >
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 16px; padding: 10px;">
+      Sign In
+    </button>
+  </form>
+
+  <p style="text-align: center;">
+    <a href="{% url 'password_reset' %}" style="color: #4CAF50; text-decoration: none;">Forgot password?</a>
+  </p>
+  
+  <hr style="margin: 20px 0;">
+  
+  <p style="text-align: center;">Or login with Google:</p>
+  <p style="text-align: center;">
+    <a href="{% provider_login_url 'google' method='oauth2' %}" class="btn btn-secondary" style="display: inline-block; margin-top: 10px;">Continue with Google</a>
+  </p>
+  
+  <hr style="margin: 20px 0;">
+  
+  <p style="text-align: center;">
+    Don't have an account?
+    <a href="{% url 'register' %}" style="color: #4CAF50; text-decoration: none;">Sign up</a>
+  </p>
+</div>
+{% endblock %}

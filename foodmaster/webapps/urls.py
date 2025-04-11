@@ -22,8 +22,6 @@ from django.conf.urls.static import static
 from django.urls import path, include
 
 
-
-
 app_name = "foodmaster"
 
 urlpatterns = [
