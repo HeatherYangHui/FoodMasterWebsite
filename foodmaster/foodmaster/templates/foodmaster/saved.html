@@ -33,3 +33,73 @@
   {% endif %}
 </div>
 {% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    // Step 1: Retrieve lat/lng from URL or sessionStorage
+    let urlParams = new URLSearchParams(window.location.search);
+    let urlLat = urlParams.get('lat');
+    let urlLng = urlParams.get('lng');
+    
+    let storedLat = sessionStorage.getItem('lat');
+    let storedLng = sessionStorage.getItem('lng');
+    
+    if (urlLat && urlLng && urlLat !== "" && urlLng !== "") {
+        // If URL has valid lat/lng, store them in sessionStorage
+        sessionStorage.setItem('lat', urlLat);
+        sessionStorage.setItem('lng', urlLng);
+    } else if (storedLat && storedLng) {
+        // If URL is missing lat/lng but sessionStorage has them, update the URL
+        urlParams.set("lat", storedLat);
+        urlParams.set("lng", storedLng);
+        window.history.replaceState({}, "", window.location.pathname + "?" + urlParams.toString());
+    } else {
+        // Step 2: If we have no lat/lng at all, prompt the user for geolocation
+        if (confirm("Allow location access to retrieve your position?")) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(success, error);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+    }
+
+    function success(position) {
+        var latitude = position.coords.latitude;
+        var longitude = position.coords.longitude;
+        // Store them
+        sessionStorage.setItem('lat', latitude);
+        sessionStorage.setItem('lng', longitude);
+        
+        // Also update the URL without reloading
+        let currentParams = new URLSearchParams(window.location.search);
+        currentParams.set("lat", latitude);
+        currentParams.set("lng", longitude);
+        window.history.replaceState({}, "", window.location.pathname + "?" + currentParams.toString());
+        
+        // Now that we have lat/lng, let's rewrite the “View” links
+        updateSavedLinks(latitude, longitude);
+    }
+
+    function error(err) {
+        console.warn("ERROR(" + err.code + "): " + err.message);
+    }
+
+    function updateSavedLinks(lat, lng) {
+        // For each “View Restaurant” or “View Recipe” link with class="btn btn-primary"
+        document.querySelectorAll('.btn.btn-primary').forEach(link => {
+            let linkUrl = new URL(link.href);
+            linkUrl.searchParams.set("lat", lat);
+            linkUrl.searchParams.set("lng", lng);
+            link.href = linkUrl.toString();
+        });
+    }
+
+    // If we already had lat/lng in sessionStorage at page load, rewrite links now
+    if (sessionStorage.getItem('lat') && sessionStorage.getItem('lng')) {
+        updateSavedLinks(sessionStorage.getItem('lat'), sessionStorage.getItem('lng'));
+    }
+});
+</script>
+{% endblock %}

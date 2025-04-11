@@ -69,7 +69,7 @@
           <button class="btn btn-primary">Make Reservation</button>
         </a>
 
-        <button class="btn btn-secondary">View Menu</button>
+        {% comment %} <button class="btn btn-secondary">View Menu</button> {% endcomment %}
         
         <form action="{% url 'toggle_save_restaurant' %}" method="post" id="save-restaurant-form" style="display: inline;">
           {% csrf_token %}
