@@ -68,7 +68,6 @@
         <a href="{{ restaurant.website }}" target="_blank" style="text-decoration: none;">
           <button class="btn btn-primary">Make Reservation</button>
         </a>
-        <button class="btn btn-secondary">View Menu</button>
         <button class="btn btn-secondary">Save</button>
 
         <form action="{% url 'create_post' %}" method="get">
@@ -84,6 +83,168 @@
       <div style="margin-bottom: 30px;">
         <h3>About</h3>
         <p>{{ restaurant.description }}</p>
+      </div>
+
+      <!-- Amenities & Additional Info Section -->
+      <style>
+        /* Label style for "Delivery", "Dine-In", etc. */
+        .info-label {
+          display: inline-block;
+          padding: 4px 8px;
+          border-radius: 16px;
+          background-color: #4CAF50; 
+          color: #fff;
+          font-weight: bold;
+          margin-right: 10px;
+          font-size: 14px;
+        }
+
+        .yes-icon {
+          color: #28a745; /* green */
+          font-weight: bold;
+          margin-right: 5px;
+        }
+        .no-icon {
+          color: #dc3545; /* red */
+          font-weight: bold;
+          margin-right: 5px;
+        }
+        .na-icon {
+          color: #6c757d; /* muted gray */
+          font-style: italic;
+          margin-right: 5px;
+        }
+
+        .amenity-item {
+          display: flex;
+          align-items: center;
+          margin-top: 8px;
+          font-size: 15px;
+        }
+
+        /* Style for the sub-lists in Payment/Parking Options */
+        .amenity-list li {
+          margin: 4px 0;
+        }
+      </style>
+
+
+      <div style="margin-bottom: 30px;">
+        <h3>Amenities &amp; Additional Info</h3>
+
+        <!-- Delivery -->
+        <div class="amenity-item">
+          <span class="info-label">Delivery</span>
+          {% if restaurant.delivery is True %}
+            <span class="yes-icon">&#10004;</span> Yes
+          {% elif restaurant.delivery is False %}
+            <span class="no-icon">&#10006;</span> No
+          {% else %}
+            <span class="na-icon">N/A</span>
+          {% endif %}
+        </div>
+
+        <!-- Dine-In -->
+        <div class="amenity-item">
+          <span class="info-label">Dine-In</span>
+          {% if restaurant.dine_in is True %}
+            <span class="yes-icon">&#10004;</span> Yes
+          {% elif restaurant.dine_in is False %}
+            <span class="no-icon">&#10006;</span> No
+          {% else %}
+            <span class="na-icon">N/A</span>
+          {% endif %}
+        </div>
+
+        <!-- Serves Vegetarian Food -->
+        <div class="amenity-item">
+          <span class="info-label">Vegetarian</span>
+          {% if restaurant.serves_vegetarian_food is True %}
+            <span class="yes-icon">&#10004;</span> Yes
+          {% elif restaurant.serves_vegetarian_food is False %}
+            <span class="no-icon">&#10006;</span> No
+          {% else %}
+            <span class="na-icon">N/A</span>
+          {% endif %}
+        </div>
+
+        <!-- Payment Options -->
+        <div class="amenity-item" style="flex-direction: column; align-items: flex-start;">
+          <span class="info-label">Payment Options</span>
+          {% if restaurant.payment_options %}
+            <ul class="amenity-list" style="margin: 5px 0 0 0; padding-left: 20px;">
+              <li>
+                Accepts Credit Cards:
+                {% if restaurant.payment_options.acceptsCreditCards %}
+                  <span class="yes-icon">&#10004;</span> Yes
+                {% else %}
+                  <span class="no-icon">&#10006;</span> No
+                {% endif %}
+              </li>
+              <li>
+                Accepts Debit Cards:
+                {% if restaurant.payment_options.acceptsDebitCards %}
+                  <span class="yes-icon">&#10004;</span> Yes
+                {% else %}
+                  <span class="no-icon">&#10006;</span> No
+                {% endif %}
+              </li>
+              <li>
+                Accepts Cash Only:
+                {% if restaurant.payment_options.acceptsCashOnly %}
+                  <span class="yes-icon">&#10004;</span> Yes
+                {% else %}
+                  <span class="no-icon">&#10006;</span> No
+                {% endif %}
+              </li>
+              <li>
+                Accepts NFC:
+                {% if restaurant.payment_options.acceptsNfc %}
+                  <span class="yes-icon">&#10004;</span> Yes
+                {% else %}
+                  <span class="no-icon">&#10006;</span> No
+                {% endif %}
+              </li>
+            </ul>
+          {% else %}
+            <span class="na-icon" style="margin-left: 10px;">N/A</span>
+          {% endif %}
+        </div>
+
+        <!-- Parking Options -->
+        <div class="amenity-item" style="flex-direction: column; align-items: flex-start;">
+          <span class="info-label">Parking</span>
+          {% if restaurant.parking_options %}
+            <ul class="amenity-list" style="margin: 5px 0 0 0; padding-left: 20px;">
+              <li>
+                Free Parking Lot:
+                {% if restaurant.parking_options.freeParkingLot %}
+                  <span class="yes-icon">&#10004;</span> Yes
+                {% else %}
+                  <span class="no-icon">&#10006;</span> No
+                {% endif %}
+              </li>
+              <li>
+                Free Street Parking:
+                {% if restaurant.parking_options.freeStreetParking %}
+                  <span class="yes-icon">&#10004;</span> Yes
+                {% else %}
+                  <span class="no-icon">&#10006;</span> No
+                {% endif %}
+              </li>
+              <li>
+                Valet Parking:
+                {% if restaurant.parking_options.valetParking %}
+                  <span class="yes-icon">&#10004;</span> Yes
+                {% else %}
+                  <span class="no-icon">&#10006;</span> No
+                {% endif %}
+              </li>
+            </ul>
+          {% else %}
+            <span class="na-icon" style="margin-left: 10px;">N/A</span>
+          {% endif %}
+        </div>
       </div>
       
       <!-- Location & Contact -->

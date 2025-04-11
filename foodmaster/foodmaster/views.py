@@ -465,7 +465,8 @@ def restaurant_detail_view(request, place_id):
         "id,displayName,formattedAddress,photos,types,"
         "rating,userRatingCount,priceLevel,currentOpeningHours,"
         "regularOpeningHours,editorialSummary,internationalPhoneNumber,"
-        "websiteUri,primaryTypeDisplayName,location,reviews"
+        "websiteUri,primaryTypeDisplayName,location,reviews,"
+        "delivery,dineIn,servesVegetarianFood,paymentOptions,parkingOptions"
     )
     url = f"{endpoint}?fields={fields}&key={settings.GOOGLE_PLACES_API_KEY}"
     
@@ -495,7 +496,12 @@ def restaurant_detail_view(request, place_id):
         }
     else:
         data = resp.json()
-        # print(data)
+        print(data.get("delivery", "N/A"))
+        print(data.get("dineIn", "N/A"))
+        print(data.get("servesVegetarianFood", "N/A"))
+        print(data.get("paymentOptions", "N/A"))
+        print(data.get("parkingOptions", "N/A"))
+
         # Extract core fields
         display_name_obj = data.get("displayName", {})
         primary_type = data.get("primaryTypeDisplayName", {}).get("text", "Unknown Cuisine")
@@ -507,6 +513,12 @@ def restaurant_detail_view(request, place_id):
         editorial_summary = data.get("editorialSummary", {}).get("text", "No description available.")
         phone = data.get("internationalPhoneNumber", "N/A")
         website = data.get("websiteUri", "N/A")
+        delivery = data.get("delivery", "N/A")
+        dine_in = data.get("dineIn", "N/A")
+        serves_vegetarian_food = data.get("servesVegetarianFood", "N/A")
+        payment_options = data.get("paymentOptions", "N/A")
+        parking_options = data.get("parkingOptions", "N/A")
+        
 
         # Convert the priceLevel string to dollar signs
         price_map = {
@@ -558,6 +570,11 @@ def restaurant_detail_view(request, place_id):
             "address": address,
             "phone": phone,
             "website": website,
+            "delivery": delivery,
+            "dine_in": dine_in,
+            "serves_vegetarian_food": serves_vegetarian_food,
+            "payment_options": payment_options,
+            "parking_options": parking_options,
             # "photo_url": photo_url,
             "photo_urls": photo_urls,
             "hours": hours_data,     # e.g. { openNow: True/False, weekdayDescriptions: [...], ... }

@@ -533,13 +533,10 @@ footer {
   
 }
 
-
 .filter-chip.active {
   background-color: #4CAF50;
   color: white;
 }
-
-
 
 .slider-prev,
 .slider-next {
