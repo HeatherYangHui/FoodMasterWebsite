@@ -92,24 +92,32 @@ def register_view(request):
     
 
 @login_required
-def save_restaurant_view(request):
-    if request.method == 'POST':
-        place_id = request.POST.get('place_id')
-        name = request.POST.get('name')
-        address = request.POST.get('address', '')
-        if not place_id or not name:
-            return JsonResponse({'success': False, 'error': 'Missing required information.'}, status=400)
-        saved, created = SavedRestaurant.objects.get_or_create(
-            user=request.user,
-            place_id=place_id,
-            defaults={'name': name, 'address': address}
-        )
-        if created:
-            return JsonResponse({'success': True, 'message': 'Restaurant saved.'})
-        else:
-            return JsonResponse({'success': True, 'message': 'Restaurant already saved.'})
-    return JsonResponse({'success': False, 'error': 'Invalid method.'}, status=400)
-
+@require_POST
+def toggle_save_restaurant_view(request):
+    """
+    Toggle saved restaurant for the current user.
+    Expect POST parameters: place_id, name, address.
+    If a SavedRestaurant record exists for this user and place_id, delete it (unsaved);
+    otherwise, create it (saved).
+    Return JSON with new state.
+    """
+    place_id = request.POST.get('place_id')
+    name = request.POST.get('name')
+    address = request.POST.get('address', '')
+    if not place_id or not name:
+        return JsonResponse({'success': False, 'error': 'Missing restaurant information.'}, status=400)
+    
+    try:
+        # If already saved, remove it.
+        saved = SavedRestaurant.objects.get(user=request.user, place_id=place_id)
+        saved.delete()
+        new_state = 'unsaved'
+    except SavedRestaurant.DoesNotExist:
+        # Otherwise, create new record.
+        SavedRestaurant.objects.create(user=request.user, place_id=place_id, name=name, address=address)
+        new_state = 'saved'
+    
+    return JsonResponse({'success': True, 'state': new_state})
 
 # -----------------------------
 # Google OAuth Redirect View
@@ -610,11 +618,16 @@ def restaurant_detail_view(request, place_id):
     user_lat = request.GET.get('lat', '0')
     user_lng = request.GET.get('lng', '0')
 
+    is_saved = False
+    if request.user.is_authenticated:
+        is_saved = request.user.saved_restaurants.filter(place_id=restaurant['id']).exists()
+    
     context = {
         "restaurant": restaurant,
         "lat": user_lat,
         "lng": user_lng,
         'google_api_key': settings.GOOGLE_PLACES_API_KEY,
+        'is_saved': is_saved,
     }
     return render(request, 'foodmaster/restaurant_detail.html', context)
 
@@ -1141,3 +1154,13 @@ def recipe_detail_view(request):
     return render(request, "foodmaster/recipe_detail.html", context)
 
 
+
+# -----------------------------
+# Saved View
+# -----------------------------
+
+@login_required
+def saved_restaurants_view(request):
+    saved_list = SavedRestaurant.objects.filter(user=request.user).order_by('-saved_at')
+    context = {'saved_list': saved_list}
+    return render(request, 'foodmaster/saved.html', context)

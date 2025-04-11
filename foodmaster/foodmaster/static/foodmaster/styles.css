@@ -560,3 +560,26 @@ footer {
 .image-slider:hover .slider-next {
   display: block;
 }
+
+.btn-save {
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+
+  
+}
+
+.btn-save.saved {
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: #71787d; 
+  color: white;
+  border: none;
+}

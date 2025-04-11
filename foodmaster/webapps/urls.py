@@ -66,6 +66,8 @@ urlpatterns = [
     # recipe search view
     path('recipe_search/', views.recipe_search_view, name='recipe_search'),
     path('recipe_detail/', views.recipe_detail_view, name='recipe_detail'),
+    path('toggle_save_restaurant/', views.toggle_save_restaurant_view, name='toggle_save_restaurant'),
+    path('saved/', views.saved_restaurants_view, name='saved'),
 ]
 
 

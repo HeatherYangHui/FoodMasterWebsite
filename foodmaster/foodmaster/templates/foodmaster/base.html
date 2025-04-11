@@ -30,7 +30,8 @@
            class="nav-link {% if request.resolver_match.url_name == 'recipe_search' %}active{% endif %}">Cook at Home</a>
         <a href="{% url 'social_feed' %}" 
            class="nav-link {% if request.resolver_match.url_name == 'social_feed' %}active{% endif %}">Social</a>
-        <a href="#" class="nav-link">Saved</a>
+           <a href="{% url 'saved' %}" 
+           class="nav-link {% if request.resolver_match.url_name == 'saved' %}active{% endif %}">Saved</a>
       </div>
     </div>
     <div class="user-menu">
