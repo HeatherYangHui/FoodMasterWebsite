@@ -7,6 +7,17 @@
   <h1>Food Master</h1>
 </header>
 
+<!-- Add messages block here -->
+{% if messages %}
+  <ul class="messages" style="list-style: none; padding: 0; margin-bottom: 20px;">
+    {% for message in messages %}
+      <li style="padding: 10px; border: 1px solid #f5c6cb; background-color: #f8d7da; color: #721c24; margin-bottom: 10px;">
+        {{ message }}
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
 <div class="wireframe-section">
   <div class="wireframe">
     <div style="max-width: 400px; margin: 0 auto;">
