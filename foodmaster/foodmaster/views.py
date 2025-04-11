@@ -173,6 +173,29 @@ def home_view(request):
         return redirect('dashboard')
     else:
         return redirect('login')
+    
+
+# -----------------------------
+# Delete Account View
+# -----------------------------
+@login_required
+def delete_account_view(request):
+    if request.method == "POST":
+        # Store user in a variable before logout
+        current_user = request.user
+
+        # Log the user out first, so session is cleared
+        logout(request)
+
+        # Now delete the user object, which should also delete the Profile
+        # if your Profile has on_delete=models.CASCADE
+        current_user.delete()
+
+        messages.success(request, "Your account has been deleted successfully.")
+        return redirect('home')  # or wherever you want them to go
+    else:
+        # If it's not a POST, just redirect or do something else.
+        return redirect('profile')
 
 
 # -----------------------------

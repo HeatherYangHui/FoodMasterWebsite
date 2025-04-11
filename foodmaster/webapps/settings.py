@@ -45,8 +45,10 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",  # Enable Google OAuth
 
-    # Your custom app
-    "foodmaster",  # Ensure your app is registered
+    # Custom app
+    # "foodmaster",  # Ensure your app is registered
+    # Custom app config
+    'foodmaster.apps.FoodmasterConfig', 
 ]
 
 SITE_ID = 1  # Needed for django-allauth

@@ -93,6 +93,29 @@
           <div style="margin-top: 20px; text-align: center;">
             <a href="{% url 'logout' %}" class="btn btn-danger">Log Out</a>
           </div>
+
+          <!-- Delete Account Button -->
+          <div style="text-align: center; margin-top: 20px;">
+            <form id="delete-account-form" method="POST" action="{% url 'delete_account' %}">
+              {% csrf_token %}
+              <button 
+                type="button" 
+                class="btn btn-secondary" 
+                style="background-color: #dc3545; border: none; color: #fff;" 
+                onclick="confirmDeleteAccount()"
+              >
+                Delete Account
+              </button>
+            </form>
+          </div>
+
+          <script>
+          function confirmDeleteAccount() {
+            if (confirm("Are you sure you want to permanently delete your account? This action cannot be undone.")) {
+              document.getElementById('delete-account-form').submit();
+            }
+          }
+          </script>
         </div>
       </div>
     </div>

@@ -36,7 +36,6 @@ urlpatterns = [
     # Include your custom app’s URLs
     # path('', include('foodmaster.urls')),
 
-
     # URLS related to authentication
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
@@ -50,6 +49,7 @@ urlpatterns = [
 
     path('restaurant_search/', views.restaurant_search_view, name='restaurant_search'),
 
+    # profile and social feed
     path('profile/', views.profile_view, name='profile'),
     path('logout/', views.logout_view, name='logout'),
     path('social/', views.social_feed_view, name='social_feed'),
@@ -58,10 +58,13 @@ urlpatterns = [
     path('ajax/comment/<int:post_id>/', views.add_comment_ajax, name='add_comment_ajax'),
     path('posts/<int:post_id>/delete/', views.delete_post_ajax, name='delete_post'),
     path('ajax/follow/<int:profile_id>/', views.toggle_follow, name='toggle_follow'),
+    path('delete_account/', views.delete_account_view, name='delete_account'),
+
     # restaurant details view
     path('restaurant/<str:place_id>/', views.restaurant_detail_view, name='restaurant_detail'),
     path('share/<int:post_id>/', views.share_post_view, name='share_post'),
     path('restaurant/<int:place_id>/', views.restaurant_detail_view, name='restaurant_detail'),
+
     # recipe search view
     path('recipe_search/', views.recipe_search_view, name='recipe_search'),
     path('recipe_detail/', views.recipe_detail_view, name='recipe_detail'),
