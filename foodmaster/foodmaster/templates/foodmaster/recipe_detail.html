@@ -120,7 +120,7 @@
       </div>
       
       <div style="display: flex; gap: 10px; margin-bottom: 30px;">
-        <button class="btn btn-primary">Add to Shopping List</button>
+        {% comment %} <button class="btn btn-primary">Add to Shopping List</button> {% endcomment %}
         <form action="{% url 'toggle_save_recipe' %}" method="post" id="save-recipe-form" style="display: inline;">
           {% csrf_token %}
           <input type="hidden" name="recipe_id" value="{{ recipe.id|default:'' }}">
