@@ -39,6 +39,7 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('password_reset/', views.password_reset_view, name='password_reset'),
     path('password_reset_confirm/<uidb64>/<token>/', views.password_reset_confirm_view, name='password_reset_confirm'),
+    path('profile/reset_password/', views.reset_password_view, name='profile_reset_password'),
 
     # A custom route that redirects to the allauth Google login
     path('google_login/', views.google_login_redirect, name='google_login'),

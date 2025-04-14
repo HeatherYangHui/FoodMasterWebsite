@@ -36,9 +36,9 @@
           <input type="password" name="password" class="form-input" placeholder="********" required>
         </div>
         
-        <div style="text-align: right; margin-bottom: 20px;">
+        {% comment %} <div style="text-align: right; margin-bottom: 20px;">
           <a href="{% url 'password_reset' %}" style="color: #4CAF50; text-decoration: none;">Forgot password?</a>
-        </div>
+        </div> {% endcomment %}
         
         <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 20px;">Login</button>
       </form>

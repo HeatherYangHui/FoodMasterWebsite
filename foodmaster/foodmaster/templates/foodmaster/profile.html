@@ -83,15 +83,20 @@
               </div>
             </div>
             
-            <!-- password_reset -->
+            <!-- save changes -->
             <div style="text-align: center; margin-top: 30px;">
               <button type="submit" class="btn btn-primary">Save Changes</button>
             </div>
           </form>
           
-          <!-- Logout button -->
+          <hr style="margin: 20px 0;">
+
+          <!-- Logout and Reset Password button -->
           <div style="margin-top: 20px; text-align: center;">
-            <a href="{% url 'logout' %}" class="btn btn-danger">Log Out</a>
+            <div style="display: flex; justify-content: center; gap: 20px;">
+              <a href="{% url 'logout' %}" class="btn btn-danger" style="padding: 10px 20px;">Log Out</a>
+              <a href="{% url 'profile_reset_password' %}" class="btn btn-danger" style="padding: 10px 20px;">Reset Password</a>
+            </div>
           </div>
 
           <!-- Delete Account Button -->

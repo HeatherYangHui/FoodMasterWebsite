@@ -4,6 +4,9 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
+from django.contrib.auth.forms import PasswordChangeForm
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.contrib.auth import update_session_auth_hash
 
 # For password reset functionality:
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
@@ -172,7 +175,7 @@ def profile_view(request):
                 image_format = image.format if image.format else 'JPEG'
                 image.save(image_io, format=image_format)
 
-                from django.core.files.uploadedfile import InMemoryUploadedFile
+                
                 profile.profile_image = InMemoryUploadedFile(
                     image_io,      
                     'ImageField', 
@@ -233,7 +236,7 @@ def delete_account_view(request):
 
 
 # -----------------------------
-# Password Reset View
+# Password Reset View (by email verification)
 # -----------------------------
 def password_reset_view(request):
     if request.method == 'POST':
@@ -253,6 +256,30 @@ def password_reset_view(request):
     else:
         form = PasswordResetForm()
     return render(request, 'foodmaster/password_reset.html', {'form': form})
+
+
+# -----------------------------
+# Reset Password View (by re-enter old password)
+# -----------------------------
+@login_required
+def reset_password_view(request):
+    """
+    Allows a logged-in user to reset their password by entering their old password
+    and a new password (with confirmation). If the old password is correct, updates the password.
+    """
+    if request.method == 'POST':
+        form = PasswordChangeForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            user = form.save()
+            # Update the session hash so the user isn't logged out
+            update_session_auth_hash(request, user)
+            messages.success(request, "Your password has been changed successfully.")
+            return redirect('profile')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = PasswordChangeForm(user=request.user)
+    return render(request, 'foodmaster/reset_password.html', {'form': form})
 
 
 # -----------------------------
