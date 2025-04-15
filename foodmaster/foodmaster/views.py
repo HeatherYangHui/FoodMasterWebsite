@@ -16,10 +16,9 @@ from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth import logout
 from django.db.models import Count
+from django.core.files.base import ContentFile
+from collections import Counter
 
-from django.contrib.gis.geos import Point
-from django.contrib.gis.measure import D  # Distance
-from .models import Restaurant
 from .models import Post
 from .models import Profile
 from .models import PostImage
@@ -96,6 +95,25 @@ def register_view(request):
     else:
         return render(request, 'foodmaster/register.html')
     
+def save_photo_from_url(photo_url, instance):
+    """
+    Download an image from photo_url and save it to the 'photo' ImageField of the given instance.
+    instance should be a model instance that has an ImageField named 'photo'.
+    Returns the URL of the saved photo, or None on failure.
+    """
+    try:
+        response = requests.get(photo_url)
+        if response.status_code == 200:
+            filename = photo_url.split("/")[-1]
+            image_file = ContentFile(response.content)
+            instance.photo.save(filename, image_file, save=True)
+            return instance.photo.url
+        else:
+            print("Request failed with status:", response.status_code)
+            return None
+    except Exception as e:
+        print("Error saving photo:", e)
+        return None
 
 @login_required
 @require_POST
@@ -110,6 +128,7 @@ def toggle_save_restaurant_view(request):
     place_id = request.POST.get('place_id')
     name = request.POST.get('name')
     address = request.POST.get('address', '')
+    photo_link = request.POST.get('photo_urls', '')
     if not place_id or not name:
         return JsonResponse({'success': False, 'error': 'Missing restaurant information.'}, status=400)
     
@@ -685,6 +704,13 @@ def social_feed_view(request):
         posts = posts.annotate(num_likes=Count('likes')).order_by('-num_likes')
     else:
         posts = posts.order_by('-created_at')
+        
+    all_tags = []
+    for post in posts:
+        if post.tags:  
+            all_tags.extend(post.tags)
+    trending_tags = [tag for tag, count in Counter(all_tags).most_common(5)]
+    
     suggested_users = []
     if request.user.is_authenticated:
         suggested_users = get_suggested_users(request.user)
@@ -692,6 +718,7 @@ def social_feed_view(request):
     context = {
         'posts': posts,
         'suggested_users': suggested_users,
+        'trending_tags': trending_tags,
     }
     
     return render(request, 'foodmaster/social_feed.html', context)
@@ -782,7 +809,7 @@ def get_city_from_coordinates(lat, lng):
 
 @login_required
 def create_post_view(request):
-    restaurant_id = request.GET.get('restaurant_id', '')
+    cuisine = request.GET.get('cuisine', '') or request.POST.get('cuisine', '')
     lat_str = request.POST.get('lat', '') or request.GET.get('lat', '0')
     lng_str = request.POST.get('lng', '') or request.GET.get('lng', '0')
 
@@ -797,10 +824,11 @@ def create_post_view(request):
 
     city = get_city_from_coordinates(rest_lat, rest_lng)
     if request.method == 'POST':
-        content = request.POST.get('content')
+        content = request.GET.get('content') or request.POST.get('content', '')
         category = request.POST.get('category', '')
         tags = request.POST.get('tags', '')
         photos = request.FILES.getlist('photos')
+        
         photo_files = []
         for photo in photos:
             try:
@@ -831,9 +859,8 @@ def create_post_view(request):
             tags=tags_list,
             shared_restaurant_place_id=place_id,
             shared_restaurant_name=rest_name,
-            # shared_restaurant_lat=rest_lat,
-            # shared_restaurant_lng=rest_lng,
             shared_restaurant_city=city,
+            shared_cuisine = cuisine
         )
 
         # Save multiple photos if any
@@ -843,12 +870,12 @@ def create_post_view(request):
         return redirect('social_feed')
     
     context = {
+        'cuisine': cuisine,
         'place_id': request.GET.get('place_id', ''),
         'rest_name': request.GET.get('rest_name', ''),
-        'lat': request.GET.get('lat', '0'),
-        'lng': request.GET.get('lng', '0'),
         'city': city,
     }
+    print("DEBUG context in recipe_detail_view:",cuisine)
     return render(request, 'foodmaster/create_post.html', context)
 
 
@@ -1191,8 +1218,6 @@ def recipe_detail_view(request):
     }
     
     return render(request, "foodmaster/recipe_detail.html", context)
-
-
 
 
 @login_required

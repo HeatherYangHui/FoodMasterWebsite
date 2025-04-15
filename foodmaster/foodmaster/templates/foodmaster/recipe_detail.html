@@ -126,7 +126,11 @@
             {% if is_recipe_saved %}Saved Recipe{% else %}Save Recipe{% endif %}
           </button>
         </form>
-        <button class="btn btn-secondary">Share</button>
+        
+        <form action="{% url 'create_post' %}" method="get" style="display:inline;">
+          <input type="hidden" name="cuisine" value="{{ recipe.title }}">
+          <button type="submit" class="btn btn-secondary">Share </button>
+        </form>
       </div>
       
       <!-- Times (No Servings Adjustment) -->

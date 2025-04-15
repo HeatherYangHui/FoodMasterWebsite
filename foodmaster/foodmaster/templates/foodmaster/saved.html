@@ -4,15 +4,38 @@
 <div class="wireframe-section">
   <h2>Saved Restaurants</h2>
   {% if saved_restaurants %}
-    <div style="display: flex; flex-direction: column; gap: 16px;">
-      {% for saved in saved_restaurants %}
-        <div style="border: 1px solid #eee; border-radius: 8px; padding: 12px;">
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    {% for saved in saved_restaurants %}
+      <!-- Make this container flex, so text (left) & photo (right) appear side by side -->
+      <div style="border: 1px solid #eee; border-radius: 8px; padding: 12px; 
+                  display: flex; align-items: center; justify-content: space-between;">
+        
+        <!-- Text block on the left -->
+        <div style="flex: 1; margin-right: 16px;">
           <h3>{{ saved.name }}</h3>
           <p>{{ saved.address }}</p>
-          <a href="{% url 'restaurant_detail' saved.place_id %}" class="btn btn-primary">View Restaurant</a>
+          <a href="{% url 'restaurant_detail' saved.place_id %}" class="btn btn-primary">
+            View Restaurant
+          </a>
         </div>
-      {% endfor %}
-    </div>
+        
+        <!-- Photo block on the right -->
+        <div style="flex-shrink: 0;">
+          {% if saved.photo_url %}
+            <img src="{{ saved.photo_url }}" alt="{{ saved.name }}" 
+                 style="width:80px; height:80px; object-fit:cover; border-radius:4px;">
+          {% else %}
+            <div style="width:80px; height:80px; background-color:#ccc; 
+                        border-radius:4px; display:flex; align-items:center; 
+                        justify-content:center;">
+              <span style="color:#fff;">No Photo</span>
+            </div>
+          {% endif %}
+        </div>
+        
+      </div>
+    {% endfor %}
+  </div>
   {% else %}
     <p>You have not saved any restaurants yet.</p>
   {% endif %}

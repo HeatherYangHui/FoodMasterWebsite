@@ -12,6 +12,7 @@ class SavedRestaurant(models.Model):
     name = models.CharField(max_length=255)
     address = models.TextField(blank=True, null=True)
     saved_at = models.DateTimeField(auto_now_add=True)
+    photo = models.ImageField(upload_to='restaurant_photos/', blank=True, null=True)
 
     class Meta:
         unique_together = ('user', 'place_id')
@@ -32,6 +33,7 @@ class Restaurant(models.Model):
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
     status = models.CharField(max_length=255, blank=True, null=True)
     tags = models.JSONField(default=list, blank=True)
+    
 
     def __str__(self):
         return self.name
@@ -65,9 +67,8 @@ class Post(models.Model):
     shared_from = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='shares')
     shared_restaurant_place_id = models.CharField(max_length=255, blank=True, null=True)
     shared_restaurant_name = models.CharField(max_length=255, blank=True, null=True)
-    # shared_restaurant_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
-    # shared_restaurant_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     shared_restaurant_city = models.CharField(max_length=255, blank=True, null=True)
+    shared_cuisine = models.CharField(max_length=255, blank=True, null=True)
     def total_likes(self):
         return self.likes.count()
     
@@ -95,6 +96,7 @@ class SavedRecipe(models.Model):
     recipe_id = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
     saved_at = models.DateTimeField(auto_now_add=True)
+    photo_url = models.URLField(blank=True, null=True)
 
     class Meta:
         unique_together = ('user', 'recipe_id')

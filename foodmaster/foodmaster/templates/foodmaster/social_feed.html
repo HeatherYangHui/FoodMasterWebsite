@@ -24,8 +24,6 @@
           <a href="?filter=dinner" class="filter-chip {% if request.GET.filter == 'dinner' %}active{% endif %}">Dinner</a>
           <a href="?filter=dessert" class="filter-chip {% if request.GET.filter == 'dessert' %}active{% endif %}">Dessert</a>
 
-
-
         </div>
         
         
@@ -115,6 +113,16 @@
                   <p style="font-size: 13px; color: #666; margin-top: 4px;">
                     Location: <strong>{{ post.shared_restaurant_city }}</strong>
                   </p>
+                </div>
+              {% endif %}
+
+              {% if post.shared_cuisine %}
+                <div class="shared-cuisine-info" style="background-color: #eef; border: 1px dashed #ccc; padding: 10px; margin: 10px 20px; border-radius: 4px;">
+                  <strong>Cuisine:</strong>
+                  <a href="{% url 'recipe_detail' %}?dish={{ post.shared_cuisine }}"
+                    style="text-decoration: none; color: #333; font-weight: bold;">
+                    {{ post.shared_cuisine }}
+                  </a>
                 </div>
               {% endif %}
               
@@ -219,12 +227,9 @@
         <div style="background-color: white; border-radius: 8px; border: 1px solid #eee; padding: 15px; margin-bottom: 20px;">
           <h4>Trending Topics</h4>
           <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
-            <div class="filter-chip">#ItalianFood</div>
-            <div class="filter-chip">#HomeCooking</div>
-            <div class="filter-chip">#Desserts</div>
-            <div class="filter-chip">#HealthyEating</div>
-            <div class="filter-chip">#Breakfast</div>
-            <div class="filter-chip">#FoodPhotography</div>
+            {% for tag in trending_tags %}
+              <div class="filter-chip">#{{ tag }}</div>
+            {% endfor %}
           </div>
         </div>
         

@@ -9,9 +9,15 @@
       <h3 style="margin-bottom: 20px;">Create New Post</h3>
 
 
-
+      {% if cuisine %}
+        <div class="cuisine-share-info" style="background-color: #eef; padding: 10px; border: 1px solid #ccd; border-radius: 4px; margin-bottom: 20px;">
+          Sharing Cuisine: <strong>{{ cuisine }}</strong>
+        </div>
+      {% endif %}
+      
       <form method="post" action="{% url 'create_post' %}" enctype="multipart/form-data">
         {% csrf_token %}
+        <input type="hidden" name="cuisine" value="{{ cuisine }}">
         <input type="hidden" name="place_id" value="{{ place_id }}">
         <input type="hidden" name="rest_name" value="{{ rest_name }}">
         <input type="hidden" name="lat" value="{{ lat }}">
@@ -26,6 +32,8 @@
           {{ restaurant.address }}
         </div>
         {% endif %}
+
+
         
         <div class="form-group">
           <label class="form-label">Upload Photo</label>
