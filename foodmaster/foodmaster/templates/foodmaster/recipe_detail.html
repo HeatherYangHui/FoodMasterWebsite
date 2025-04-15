@@ -85,13 +85,11 @@
                     ⭐ {{ market.rating }} ({{ market.distance }})
                     <span style="margin-left: 8px; color: #4CAF50;">Open</span>
                   </div>
-                  {% if market.types %}
+                  {% if market.primaryTypeDisplayName %}
                     <div style="margin-top: 5px;">
-                      {% for t in market.types %}
-                        <span class="tag" style="background: #eee; padding: 3px 6px; border-radius: 4px; margin-right: 5px; font-size: 12px;">
-                          {{ t }}
-                        </span>
-                      {% endfor %}
+                      <span class="tag" style="background: #eee; padding: 3px 6px; border-radius: 4px; margin-right: 5px; font-size: 14px;">
+                        {{ market.primaryTypeDisplayName }}
+                      </span>
                     </div>
                   {% endif %}
                 </div>

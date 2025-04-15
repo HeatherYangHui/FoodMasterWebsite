@@ -44,12 +44,12 @@
 /* Title inside the card content */
 .feature-title {
   font-weight: bold;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 /* Paragraph text */
 .feature-text {
-  margin-bottom: 12px;
+  margin-bottom: 25px;
 }
 
 .feature-btn {
