@@ -1,0 +1,123 @@
+/* Container for the features section */
+.features-section {
+  margin-bottom: 30px;
+}
+
+/* Layout for the cards: display them side by side with a 20px gap */
+.feature-content {
+  display: flex;
+  gap: 20px;
+}
+
+/* Each feature card */
+.feature-card {
+  width: 400px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Image container for the card with fixed height and gray background */
+.feature-img-container {
+  height: 250px;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Feature images, resized to fit the container */
+.feature-img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Card content padding */
+.feature-caption {
+  padding: 12px;
+}
+
+/* Title inside the card content */
+.feature-title {
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+/* Paragraph text */
+.feature-text {
+  margin-bottom: 25px;
+}
+
+.feature-btn {
+  text-decoration: none;
+}
+
+/* Container that wraps the entire filter block */
+.filter-container {
+    background-color: #f9f9f9; 
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 16px;
+    max-width: 350px; 
+  }
+  
+  /* Title for the filter box */
+  .filter-title {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+  
+  /* Each form group (label + select) */
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  /* Label styling */
+  .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #333;
+  }
+  
+  /* Select (or input) styling */
+  .form-input {
+    width: 100%;
+    padding: 0.45rem 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+  
+  .form-input:focus {
+    border-color: #4CAF50; 
+  }
+  
+  /* The Submit button for filters */
+  .filter-button {
+    width: 100%;
+    padding: 0.6rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    border: none; 
+    margin-top: 10px;
+  }
+  
+  .filter-button.btn.btn-primary {
+    background-color: #4CAF50; /* green */
+    color: #fff;
+  }
+  .filter-button.btn.btn-primary:hover {
+    background-color: #45a049; 
+  }

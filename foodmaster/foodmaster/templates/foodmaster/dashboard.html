@@ -24,38 +24,63 @@
       </a>
     </div>
     
-    <div style="margin-bottom: 30px;">
-      <h4>Recommendations For You</h4>
-      <div class="content">
-        <div class="card">
-          <div class="card-img">Restaurant Image</div>
-          <div class="card-content">
-            <div class="card-title">Mario's Pizza</div>
-            <div>Italian • $$</div>
-            <div>⭐ 4.7 (324 reviews)</div>
-            <div style="color: #4CAF50;">0.8 miles away</div>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'foodmaster/dashboard_style.css' %}">
+    <div class="features-section">
+      <h4>Explore Our Main Features</h4>
+      <!-- Container that lines up the 3 cards side by side -->
+      <div class="feature-content">
+        
+        <!-- CARD 1 -->
+        <div class="feature-card">
+          <!-- Image container: fixed height, gray background; image fits inside -->
+          <div class="feature-img-container">
+            <img 
+              src="{% static 'foodmaster/restaurant_search_demo.png' %}" 
+              alt="Restaurant Search Demo" 
+              class="feature-img"
+            >
+          </div>
+          <!-- Card content -->
+          <div class="feature-caption">
+            <div class="feature-title">Discover Restaurants</div>
+            <p class="feature-text">Find the best spots near you, read reviews, and more.</p>
+            <a href="{% url 'restaurant_search' %}" class="btn btn-primary feature-btn">Explore</a>
           </div>
         </div>
         
-        <div class="card">
-          <div class="card-img">Recipe Image</div>
-          <div class="card-content">
-            <div class="card-title">Homemade Pasta</div>
-            <div>Italian • 45 min</div>
-            <div>⭐ 4.8 (156 reviews)</div>
-            <div style="color: #4CAF50;">Matches your taste</div>
+        <!-- CARD 2 -->
+        <div class="feature-card">
+          <div class="feature-img-container">
+            <img 
+              src="{% static 'foodmaster/recipe_search_demo.png' %}" 
+              alt="Recipe Search Demo" 
+              class="feature-img"
+            >
+          </div>
+          <div class="feature-caption">
+            <div class="feature-title">Cook at Home</div>
+            <p class="feature-text">Search recipes, track ingredients, and share your cooking journey.</p>
+            <a href="{% url 'recipe_search' %}" class="btn btn-primary feature-btn">Cook</a>
           </div>
         </div>
         
-        <div class="card">
-          <div class="card-img">Restaurant Image</div>
-          <div class="card-content">
-            <div class="card-title">Sushi Delight</div>
-            <div>Japanese • $$$</div>
-            <div>⭐ 4.9 (412 reviews)</div>
-            <div style="color: #4CAF50;">New in your area</div>
+        <!-- CARD 3 -->
+        <div class="feature-card">
+          <div class="feature-img-container">
+            <img 
+              src="{% static 'foodmaster/social_community_demo.jpeg' %}" 
+              alt="Social Community Demo" 
+              class="feature-img"
+            >
+          </div>
+          <div class="feature-caption">
+            <div class="feature-title">Join Our Community</div>
+            <p class="feature-text">Share your dining experiences and favorite recipes with others.</p>
+            <a href="{% url 'social_feed' %}" class="btn btn-primary feature-btn">Social</a>
           </div>
         </div>
+        
       </div>
     </div>
   </div>

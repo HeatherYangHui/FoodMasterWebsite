@@ -4,6 +4,9 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
+from django.contrib.auth.forms import PasswordChangeForm
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.contrib.auth import update_session_auth_hash
 
 # For password reset functionality:
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
@@ -172,7 +175,7 @@ def profile_view(request):
                 image_format = image.format if image.format else 'JPEG'
                 image.save(image_io, format=image_format)
 
-                from django.core.files.uploadedfile import InMemoryUploadedFile
+                
                 profile.profile_image = InMemoryUploadedFile(
                     image_io,      
                     'ImageField', 
@@ -233,7 +236,7 @@ def delete_account_view(request):
 
 
 # -----------------------------
-# Password Reset View
+# Password Reset View (by email verification)
 # -----------------------------
 def password_reset_view(request):
     if request.method == 'POST':
@@ -253,6 +256,30 @@ def password_reset_view(request):
     else:
         form = PasswordResetForm()
     return render(request, 'foodmaster/password_reset.html', {'form': form})
+
+
+# -----------------------------
+# Reset Password View (by re-enter old password)
+# -----------------------------
+@login_required
+def reset_password_view(request):
+    """
+    Allows a logged-in user to reset their password by entering their old password
+    and a new password (with confirmation). If the old password is correct, updates the password.
+    """
+    if request.method == 'POST':
+        form = PasswordChangeForm(user=request.user, data=request.POST)
+        if form.is_valid():
+            user = form.save()
+            # Update the session hash so the user isn't logged out
+            update_session_auth_hash(request, user)
+            messages.success(request, "Your password has been changed successfully.")
+            return redirect('profile')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = PasswordChangeForm(user=request.user)
+    return render(request, 'foodmaster/reset_password.html', {'form': form})
 
 
 # -----------------------------
@@ -310,8 +337,8 @@ def get_nearby_restaurants(lat, lng, radius=500, cuisine=None):
         "X-Goog-Api-Key": settings.GOOGLE_PLACES_API_KEY,
         "X-Goog-FieldMask": (
             "places.id,places.displayName,places.formattedAddress,places.location,"
-            "places.types,places.rating,places.photos,places.priceLevel,"
-            "places.userRatingCount"
+            "places.rating,places.photos,places.priceLevel,"
+            "places.userRatingCount,places.primaryTypeDisplayName"
         )
     }
     
@@ -357,7 +384,9 @@ def get_nearby_restaurants(lat, lng, radius=500, cuisine=None):
             photo_url = None
             price_level = place.get("priceLevel")
             user_rating_count = place.get("userRatingCount")
-            types = place.get("types", [])
+            # types = place.get("types", [])
+            # primary_type = place.get("primaryType")
+            primary_type_display_name = place.get("primaryTypeDisplayName", {}).get("text", "Unknown Cuisine")
             # Extrace unique place id, preparing for details search
             place_id = place.get("id")
 
@@ -384,10 +413,13 @@ def get_nearby_restaurants(lat, lng, radius=500, cuisine=None):
                 "photo_url": photo_url,
                 "priceLevel": price_level,
                 "userRatingCount": user_rating_count,
-                "types": types,
+                # "types": types,
                 "latitude": place_lat,
                 "longitude": place_lng,
+                # "primaryType": primary_type,
+                "primaryTypeDisplayName": primary_type_display_name,
             })
+            print(restaurants)
     else:
         print("No places found or error:", data.get("error", data))
     
@@ -528,11 +560,11 @@ def restaurant_detail_view(request, place_id):
         }
     else:
         data = resp.json()
-        print(data.get("delivery", "N/A"))
-        print(data.get("dineIn", "N/A"))
-        print(data.get("servesVegetarianFood", "N/A"))
-        print(data.get("paymentOptions", "N/A"))
-        print(data.get("parkingOptions", "N/A"))
+        # print(data.get("delivery", "N/A"))
+        # print(data.get("dineIn", "N/A"))
+        # print(data.get("servesVegetarianFood", "N/A"))
+        # print(data.get("paymentOptions", "N/A"))
+        # print(data.get("parkingOptions", "N/A"))
 
         # Extract core fields
         display_name_obj = data.get("displayName", {})
@@ -764,7 +796,6 @@ def create_post_view(request):
         rest_lng = 0.0
 
     city = get_city_from_coordinates(rest_lat, rest_lng)
-    # print(city)
     if request.method == 'POST':
         content = request.POST.get('content')
         category = request.POST.get('category', '')
@@ -818,7 +849,6 @@ def create_post_view(request):
         'lng': request.GET.get('lng', '0'),
         'city': city,
     }
-    # print(context)
     return render(request, 'foodmaster/create_post.html', context)
 
 
@@ -988,7 +1018,7 @@ def get_nearby_markets(lat, lng, radius=1000, store_type='supermarket'):
         "X-Goog-Api-Key": settings.GOOGLE_PLACES_API_KEY,
         "X-Goog-FieldMask": (
             "places.id,places.displayName,places.formattedAddress,places.location,"
-            "places.types,places.rating,places.photos"
+            "places.primaryTypeDisplayName,places.rating,places.photos"
         )
     }
     
@@ -1031,7 +1061,8 @@ def get_nearby_markets(lat, lng, radius=1000, store_type='supermarket'):
             rating = place.get("rating", "N/A")
             address = place.get("formattedAddress", "No address provided")
             photo_url = None
-            types = place.get("types", [])
+            # types = place.get("types", [])
+            primary_type_display_name = place.get("primaryTypeDisplayName", {}).get("text", "Unknown Type")
             place_id = place.get("id")
             
             location_data = place.get("location", {})
@@ -1057,7 +1088,8 @@ def get_nearby_markets(lat, lng, radius=1000, store_type='supermarket'):
                 "rating": rating,
                 "address": address,
                 "photo_url": photo_url,
-                "types": types,
+                # "types": types,
+                "primaryTypeDisplayName": primary_type_display_name,
                 "latitude": market_lat,
                 "longitude": market_lng,
                 "distance": f"{distance:.1f} miles"  # formatted distance
@@ -1103,7 +1135,7 @@ def recipe_detail_view(request):
     params = {
         "query": dish,
         "addRecipeInformation": "true",
-        "fillIngredients": "true",  # ensures we get ingredient details
+        "fillIngredients": "true",  # ensures get ingredient details
         "instructionsRequired": "true",     # ensures instructions information is available
         "addRecipeInstructions": "true",    # returns analyzed instructions details
         "addRecipeNutrition": "true",       # returns nutritional information

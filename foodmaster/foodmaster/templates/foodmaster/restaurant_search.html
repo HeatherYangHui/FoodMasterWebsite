@@ -23,13 +23,13 @@
         <a href="{% url 'restaurant_detail' restaurant.id %}?lat={{ lat }}&lng={{ lng }}" style="text-decoration: none; color: inherit;">
           <div class="restaurant-card">
             {% if restaurant.photo_url %}
-              <img src="{{ restaurant.photo_url }}" alt="Restaurant Image" style="width: 135px; height:135px; object-fit: cover;">
+              <img src="{{ restaurant.photo_url }}" alt="Restaurant Image" style="width: 170px; height:170px; object-fit: cover;">
             {% else %}
               <div class="restaurant-img">🍕</div>
             {% endif %}
             
             <div class="restaurant-info">
-              <h4>{{ restaurant.name.text.text }}</h4>
+              <h3>{{ restaurant.name.text.text }}</h3>
               {% if restaurant.rating %}
                 <div>
                   ⭐ {{ restaurant.rating }}
@@ -41,12 +41,6 @@
                 <div>No rating</div>
               {% endif %}
               {% if restaurant.priceLevel %}
-                <!-- <div>
-                  Price Level: 
-                  {% for i in "x"|slice:restaurant.priceLevel %}
-                    $
-                  {% endfor %}
-                </div> -->
                 <div>
                   Price Level:
                   {% if restaurant.priceLevel == "PRICE_LEVEL_INEXPENSIVE" %}
@@ -64,12 +58,9 @@
                 
               {% endif %}
               <div>{{ restaurant.address }}</div>
-              {% if restaurant.types %}
+              {% if restaurant.primaryTypeDisplayName %}
                 <div>
-                  <strong>Category:</strong>
-                  {% for t in restaurant.types %}
-                    {{ t }}{% if not forloop.last %}, {% endif %}
-                  {% endfor %}
+                  <strong>Category:</strong> {{ restaurant.primaryTypeDisplayName }}
                 </div>
               {% endif %}
             </div>
@@ -80,9 +71,9 @@
         <p>No restaurants found near your location.</p>
       {% endif %}
       
-      <div style="text-align: center; margin-top: 20px;">
+      {% comment %} <div style="text-align: center; margin-top: 20px;">
         <button class="btn btn-secondary">Load More Results</button>
-      </div>
+      </div> {% endcomment %}
     </div>
     
     <!-- Sidebar with a placeholder map and filters -->
@@ -170,60 +161,64 @@
         defer
       ></script>
       
-      <div style="background-color: #f9f9f9; border-radius: 8px; padding: 15px;">
-        <h4>Filter Results</h4>
-        
+      {% load static %}
+      <link rel="stylesheet" href="{% static 'foodmaster/dashboard_style.css' %}">
+      <div class="filter-container">
+        <h4 class="filter-title">Restaurant Filters</h4>
         <form method="get" action="{% url 'restaurant_search' %}">
           <!-- Store the location variable -->
           {% if lat and lng %}
             <input type="hidden" name="lat" value="{{ lat }}">
             <input type="hidden" name="lng" value="{{ lng }}">
           {% endif %}
-          
-          <div class="form-group">
-            <label class="form-label">Cuisine</label>
-            <select name="cuisine" class="form-input">
-              <option value="">All Cuisines</option>
-              <option value="italian" {% if request.GET.cuisine == "italian" %}selected{% endif %}>Italian</option>
-              <option value="chinese" {% if request.GET.cuisine == "chinese" %}selected{% endif %}>Chinese</option>
-              <option value="japanese" {% if request.GET.cuisine == "japanese" %}selected{% endif %}>Japanese</option>
-              <option value="mexican" {% if request.GET.cuisine == "mexican" %}selected{% endif %}>Mexican</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Price Range</label>
-            <select name="price" class="form-input">
-              <option value="">Any</option>
-              <option value="1" {% if request.GET.price == "1" %}selected{% endif %}>$</option>
-              <option value="2" {% if request.GET.price == "2" %}selected{% endif %}>$$</option>
-              <option value="3" {% if request.GET.price == "3" %}selected{% endif %}>$$$</option>
-              <option value="4" {% if request.GET.price == "4" %}selected{% endif %}>$$$$</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Distance</label>
-            <select name="distance" class="form-input">
-              <option value="">Any</option>
-              <option value="1" {% if request.GET.distance == "1" %}selected{% endif %}>Under 1 mile</option>
-              <option value="2" {% if request.GET.distance == "2" %}selected{% endif %}>Under 2 miles</option>
-              <option value="5" {% if request.GET.distance == "5" %}selected{% endif %}>Under 5 miles</option>
-            </select>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">Rating</label>
-            <select name="rating" class="form-input">
-              <option value="">Any</option>
-              <option value="3" {% if request.GET.rating == "3" %}selected{% endif %}>3+ stars</option>
-              <option value="4" {% if request.GET.rating == "4" %}selected{% endif %}>4+ stars</option>
-              <option value="4.5" {% if request.GET.rating == "4.5" %}selected{% endif %}>4.5+ stars</option>
-            </select>
-          </div>
-          
-          <button type="submit" class="btn btn-primary" style="width: 100%;">Apply Filters</button>
-        </form>
+        
+        <!-- Cuisine -->
+        <div class="form-group">
+          <label class="form-label">Cuisine</label>
+          <select name="cuisine" class="form-input">
+            <option value="">All Cuisines</option>
+            <option value="italian" {% if request.GET.cuisine == "italian" %}selected{% endif %}>Italian</option>
+            <option value="chinese" {% if request.GET.cuisine == "chinese" %}selected{% endif %}>Chinese</option>
+            <option value="japanese" {% if request.GET.cuisine == "japanese" %}selected{% endif %}>Japanese</option>
+            <option value="mexican" {% if request.GET.cuisine == "mexican" %}selected{% endif %}>Mexican</option>
+          </select>
+        </div>
+      
+        <!-- Price Range -->
+        <div class="form-group">
+          <label class="form-label">Price Range</label>
+          <select name="price" class="form-input">
+            <option value="">Any</option>
+            <option value="1" {% if request.GET.price == "1" %}selected{% endif %}>$</option>
+            <option value="2" {% if request.GET.price == "2" %}selected{% endif %}>$$</option>
+            <option value="3" {% if request.GET.price == "3" %}selected{% endif %}>$$$</option>
+            <option value="4" {% if request.GET.price == "4" %}selected{% endif %}>$$$$</option>
+          </select>
+        </div>
+      
+        <!-- Distance -->
+        <div class="form-group">
+          <label class="form-label">Distance</label>
+          <select name="distance" class="form-input">
+            <option value="">Any</option>
+            <option value="1" {% if request.GET.distance == "1" %}selected{% endif %}>Under 1 mile</option>
+            <option value="2" {% if request.GET.distance == "2" %}selected{% endif %}>Under 2 miles</option>
+            <option value="5" {% if request.GET.distance == "5" %}selected{% endif %}>Under 5 miles</option>
+          </select>
+        </div>
+      
+        <!-- Rating -->
+        <div class="form-group">
+          <label class="form-label">Rating</label>
+          <select name="rating" class="form-input">
+            <option value="">Any</option>
+            <option value="3" {% if request.GET.rating == "3" %}selected{% endif %}>3+ stars</option>
+            <option value="4" {% if request.GET.rating == "4" %}selected{% endif %}>4+ stars</option>
+            <option value="4.5" {% if request.GET.rating == "4.5" %}selected{% endif %}>4.5+ stars</option>
+          </select>
+        </div>
+      
+        <button type="submit" class="btn btn-primary filter-button">Apply Filters</button>
       </div>
     </div>
   </div>
@@ -232,28 +227,28 @@
 <!-- JavaScript: prompt for location if not present in URL -->
 <script>
   document.addEventListener('DOMContentLoaded', function(){
-      // 获取 URL 参数中的 lat 和 lng
+      // Get URL parameters
       let urlParams = new URLSearchParams(window.location.search);
       let urlLat = urlParams.get('lat');
       let urlLng = urlParams.get('lng');
       
-      // 从 sessionStorage 中读取定位信息
+      // Get stored location from sessionStorage
       let storedLat = sessionStorage.getItem('lat');
       let storedLng = sessionStorage.getItem('lng');
       
       if(urlLat && urlLng){
-          // 如果 URL 中已有定位信息，则更新 sessionStorage
+          // If URL has lat/lng, store them in sessionStorage
           sessionStorage.setItem('lat', urlLat);
           sessionStorage.setItem('lng', urlLng);
       } else if(storedLat && storedLng){
-          // 如果 URL 中没有，但 sessionStorage 有，则更新 URL（不提示）
+          // If sessionStorage has lat/lng, set them in URL
           urlParams.set("lat", storedLat);
           urlParams.set("lng", storedLng);
-          // 使用 replaceState 避免重复创建历史记录
+          // Use replaceState to avoid adding a new entry in the browser history
           window.history.replaceState({}, "", window.location.pathname + "?" + urlParams.toString());
           return;
       } else {
-          // 如果既没有 URL 也没有 sessionStorage，则提示获取定位
+          // If no lat/lng in URL or sessionStorage, prompt for location
           if (confirm("Allow location access to show restaurants near you?")) {
               if (navigator.geolocation) {
                   navigator.geolocation.getCurrentPosition(success, error);
@@ -266,7 +261,7 @@
       function success(position) {
           var latitude = position.coords.latitude;
           var longitude = position.coords.longitude;
-          // 将获取的定位信息保存到 sessionStorage 中
+          // Save lat/lng to sessionStorage
           sessionStorage.setItem('lat', latitude);
           sessionStorage.setItem('lng', longitude);
           let currentParams = new URLSearchParams(window.location.search);
