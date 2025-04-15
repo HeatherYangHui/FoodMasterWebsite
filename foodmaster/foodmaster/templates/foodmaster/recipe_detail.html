@@ -114,9 +114,8 @@
           {% else %}
             Italian
           {% endif %}
-           • {{ recipe.readyInMinutes|default:"25" }} min • Easy •
+           • {{ recipe.readyInMinutes|default:"25" }} min • Easy
         </span>
-        <!-- <span>⭐ {{ recipe.aggregateLikes|default:"4.8" }} ({{ recipe.reviews|default:"156" }} reviews)</span> -->
       </div>
       
       <div style="display: flex; gap: 10px; margin-bottom: 30px;">
@@ -156,9 +155,6 @@
         <div class="tab" data-target="nutrition-content" style="cursor: pointer;">
           Nutrition
         </div>
-        <!-- <div class="tab" data-target="reviews-content" style="cursor: pointer;">
-          Reviews
-        </div> -->
       </div>
       
       <!-- Tab Contents -->
@@ -168,7 +164,7 @@
         {% if recipe and recipe.displayIngredients %}
           {% for ingredient in recipe.displayIngredients %}
             <div class="ingredient-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-              <input type="checkbox" style="transform: scale(1.3);" />
+              {% comment %} <input type="checkbox" style="transform: scale(1.3);" /> {% endcomment %}
               <span>{{ ingredient.original }}</span>
             </div>
           {% endfor %}
@@ -176,7 +172,7 @@
           <p>No ingredient information available.</p>
         {% endif %}
         
-        <button class="btn btn-primary" style="width: 100%; margin-top: 20px;">Add All to Shopping List</button>
+        {% comment %} <button class="btn btn-primary" style="width: 100%; margin-top: 20px;">Add All to Shopping List</button> {% endcomment %}
       </div>
 
       <!-- Instructions -->
