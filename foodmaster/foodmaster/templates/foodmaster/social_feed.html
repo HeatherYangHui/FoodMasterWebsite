@@ -101,30 +101,28 @@
               {% endif %}
               
               {% if post.shared_restaurant_place_id %}
-                <div class="shared-restaurant-info">
-                  <strong>Restaurant:</strong>
-                  <a href="{% url 'restaurant_detail' post.shared_restaurant_place_id %}"
-                    style="text-decoration: none; color: #333; font-weight: bold;">
-                    {{ post.shared_restaurant_name }}
-                  </a>
-                  {% comment %} <p style="font-size: 13px; color: #666; margin-top: 4px;">
-                    ({{ post.shared_restaurant_lat }}, {{ post.shared_restaurant_lng }})
-                  </p> {% endcomment %}
-                  <p style="font-size: 13px; color: #666; margin-top: 4px;">
-                    Location: <strong>{{ post.shared_restaurant_city }}</strong>
-                  </p>
-                </div>
-              {% endif %}
+              <div class="shared-restaurant-info" style="background-color: #eef; border: 1px dashed #ccc; padding: 5px; margin: 10px 20px; border-radius: 4px;">
+                <strong>Restaurant:</strong>
+                <a href="{% url 'restaurant_detail' post.shared_restaurant_place_id %}"
+                  style="text-decoration: none; color: #333; font-weight: bold;">
+                  {{ post.shared_restaurant_name }}
+                </a>
+                <p style="font-size: 14px; color: #666; margin-top: 2px;">
+                  Location: <strong>{{ post.shared_restaurant_city }}</strong>
+                </p>
+              </div>
+            {% endif %}
 
-              {% if post.shared_cuisine %}
-                <div class="shared-cuisine-info" style="background-color: #eef; border: 1px dashed #ccc; padding: 10px; margin: 10px 20px; border-radius: 4px;">
-                  <strong>Cuisine:</strong>
-                  <a href="{% url 'recipe_detail' %}?dish={{ post.shared_cuisine }}"
-                    style="text-decoration: none; color: #333; font-weight: bold;">
-                    {{ post.shared_cuisine }}
-                  </a>
-                </div>
-              {% endif %}
+            {% if post.shared_cuisine %}
+              <div class="shared-cuisine-info" style="background-color: #eef; border: 1px dashed #ccc; padding: 10px; margin: 10px 20px; border-radius: 4px;">
+                <strong>Cuisine:</strong>
+                <a href="{% url 'recipe_detail' %}?dish={{ post.shared_cuisine }}"
+                  style="text-decoration: none; color: #333; font-weight: bold;">
+                  {{ post.shared_cuisine }}
+                </a>
+              </div>
+            {% endif %}
+
               
               <div class="post-actions" style="display: flex; align-items: center; padding: 0 20px 16px; gap: 20px; border-bottom: 1px solid #f5f5f5;">
                 <div style="display: flex; align-items: center; gap: 6px;">
