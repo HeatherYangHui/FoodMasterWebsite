@@ -11,7 +11,7 @@
     <div class="split-content">
       <div class="main-content">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-          <h2>Food Community</h2>
+          <h1>Food Community</h1>
           <a href="{% url 'create_post' %}"><button class="btn btn-primary">Create Post</button></a>
         </div>
 
@@ -42,7 +42,7 @@
                 </div>
                 <div style="flex: 1;">
                   <div style="font-weight: 600; font-size: 16px; color: #333;">{{ post.author }}</div>
-                  <div style="font-size: 14px; color: #666;">{{ post.created_at|single_timesince }} • {{ post.category }}</div>
+                  <div style="margin-top: 3px; font-size: 14px; color: #666;">{{ post.created_at|single_timesince }} • {{ post.category }}</div>
                 </div>
                 {% if request.user != post.author %}
                   {% if request.user in post.author.profile.followers.all %}
@@ -61,7 +61,7 @@
               
               {% if post.postimage_set.all %}
                 <div class="image-slider" style="position: relative;">
-                  <div class="slider-wrapper" style="display: flex; overflow: hidden;">
+                  <div class="slider-wrapper" style="display: flex;">
                     {% for img in post.postimage_set.all %}
                       <img src="{{ img.image.url }}" loading="lazy"
                           alt="Post Photo"
@@ -76,9 +76,9 @@
                   {% endif %}
                 </div>
                 {% elif post.photo %}
-                  <div class="post-image" style="width: 100%; height: auto; max-height: 450px; overflow: hidden; position: relative; background-color: #f9f9f9;">
-                    <img src="{{ post.photo.url }}" loading="lazy" alt="Post Photo" style="width: 100%; height: auto; object-fit: contain;">
-                  </div>
+                <div class="post-image-container">
+                  <img src="{{ post.photo.url }}" loading="lazy" alt="Post Photo">
+                </div>
                 {% endif %}
                               
               <div style="padding: 20px;">
@@ -124,10 +124,10 @@
             {% endif %}
 
               
-              <div class="post-actions" style="display: flex; align-items: center; padding: 0 20px 16px; gap: 20px; border-bottom: 1px solid #f5f5f5;">
-                <div style="display: flex; align-items: center; gap: 6px;">
+              <div class="post-actions" style="display: flex; align-items: center; padding: 0 20px 16px; gap: 20px; border-bottom: 1px solid #f5f5f5; ">
+                <div style="display: flex; align-items: center; gap: 6px; margin-top: 10px;">
                   <button class="like-btn" data-post-id="{{ post.id }}" onclick="toggleLike(this)" 
-                    style="background: none; border: none; font-size: 20px; cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; padding: 0;">
+                    style=" background: none; border: none; font-size: 20px; cursor: pointer; transition: transform 0.2s; display: flex; align-items: center; padding: 0;">
                     {% if request.user in post.likes.all %}
                       ❤️
                     {% else %}
@@ -137,15 +137,15 @@
                   <span class="like-count" style="font-size: 14px; color: #666;">{{ post.total_likes }} Likes</span>
                 </div>
                 
-                <span class="comment-count" onclick="toggleComments(this)" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: #666;">
+                <span class="comment-count" onclick="toggleComments(this)" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; color: #666; margin-top: 10px;">
                   <span style="font-size: 18px;">💬</span><span class="toggle-text"></span> {{ post.comments.count }} Comments
                 </span>
                 <div style="display: flex; align-items: center; gap: 6px;">
-                  <a href="{% url 'share_post' post.id %}" style="text-decoration: none; font-size: 20px; color: #666;">🔗</a>
-                  <span class="share-count" style="font-size:14px; color:#666;">{{ post.shares.count }} Shares</span>
+                  <a href="{% url 'share_post' post.id %}" style="text-decoration: none; font-size: 20px; color: #666; margin-top: 10px;">🔗</a>
+                  <span class="share-count" style="font-size:14px; color:#666; margin-top: 10px;">{{ post.shares.count }} Shares</span>
                 </div>
                 {% if post.author == request.user %}
-                  <button onclick="deletePost(this)" class="btn-delete" style="margin-left: auto; background: none; border: none; color: #ff5252; font-size: 14px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                  <button onclick="deletePost(this)" class="btn-delete" style="margin-left: auto; background: none; border: none; color: #ff5252; font-size: 14px; display: flex; align-items: center; gap: 4px; cursor: pointer; margin-top: 10px;">
                     <span style="font-size: 18px;">🗑️</span> Delete
                   </button>
                 {% endif %}
@@ -197,10 +197,10 @@
       <!-- Sidebar -->
       <div class="sidebar">
         <div style="background-color: white; border-radius: 8px; border: 1px solid #eee; padding: 15px; margin-bottom: 20px;">
-          <h4>Your Profile</h4>
+          <div class="sidebar-title">Your Profile</div>
           <div style="display: flex; margin-bottom: 15px;">
             
-            <div class="post-avatar" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; margin-right: 12px;">
+            <div class="post-avatar" style="width: 68px; height: 68px; border-radius: 50%; overflow: hidden; margin-right: 12px;">
               {% if user.profile.profile_image %}
                 <img src="{{ user.profile.profile_image.url }}" alt="Profile Image" style="width:100%; height:100%; object-fit: cover;">
               {% else %}
@@ -208,30 +208,32 @@
               {% endif %}
             </div>
             <div>
-              <div style="font-weight: bold;">{{ user.username }}</div>
-              <div style="font-size: 14px; color: #666;">@{{ user.username }}</div>
-              <div style="font-size: 14px; margin-top: 5px;">{{ user.profile.bio|default:"Food enthusiast & home cook" }}</div>
+              <div style="font-size: 16px; font-weight: bold; margin-top: 5px">@{{ user.username }}</div>
+              <div style="font-size: 14px; color: #666; margin-top: 5px">{{ user.email }}</div>
+              <div style="font-size: 14px; margin-top: 5px;">{{ user.profile.bio|default:"No Intro" }}</div>
             </div>
           </div>
-          <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-            <div>
+          <div style="display: flex; gap: 15px; margin-bottom: 15px; justify-content: space-evenly;">
+            <div style="display: flex; flex-direction: column; align-items: center;">
               <div style="font-weight: bold;">{{ user.post_set.count }}</div>
-              <div style="font-size: 12px; color: #666;">Posts</div>
+              <div style="font-size: 15px; color: #666;">Posts</div>
             </div>
-            <div>
+            <div style="display: flex; flex-direction: column; align-items: center;">
               <div style="font-weight: bold;">{{ user.profile.followers.count }}</div>
-              <div style="font-size: 12px; color: #666;">Followers</div>
+              <div style="font-size: 15px; color: #666;">Followers</div>
             </div>
-            <div>
+            <div style="display: flex; flex-direction: column; align-items: center;">
               <div style="font-weight: bold;">{{ user.following_profiles.count }}</div>
-              <div style="font-size: 12px; color: #666;">Following</div>
+              <div style="font-size: 15px; color: #666;">Following</div>
             </div>
           </div>
-          <a href="{% url 'profile' %}"><button class="btn btn-secondary" style="width: 100%;">Edit Profile</button></a>
+        <div style="text-align: center;">
+          <a href="{% url 'profile' %}"><button class="btn btn-secondary" style="width: 50%;">Edit Profile</button></a>
+        </div>
         </div>
         
         <div style="background-color: white; border-radius: 8px; border: 1px solid #eee; padding: 15px; margin-bottom: 20px;">
-          <h4>Trending Topics</h4>
+          <div class="sidebar-title">Trending Topics</div>
           <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;">
             {% for tag in trending_tags %}
               <div class="filter-chip">#{{ tag }}</div>
@@ -240,7 +242,7 @@
         </div>
         
         <div style="background-color: white; border-radius: 8px; border: 1px solid #eee; padding: 15px;">
-          <h4>Suggested For You</h4>
+          <div class="sidebar-title">Suggested For You</div>
           {% if suggested_users %}
             {% for suggested in suggested_users %}
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -515,19 +517,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const nextButton = slider.querySelector('.slider-next');
     let currentIndex = 0;
 
-    if (images.length <= 1) {
-      prevButton.style.display = 'none';
-      nextButton.style.display = 'none';
-    } else {
-      slider.addEventListener('mouseenter', function() {
-        prevButton.style.display = 'block';
-        nextButton.style.display = 'block';
-      });
-      slider.addEventListener('mouseleave', function() {
-        prevButton.style.display = 'none';
-        nextButton.style.display = 'none';
-      });
-    }
 
     function updateSlider() {
       if (images.length > 0) {
@@ -537,7 +526,25 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    if (prevButton && nextButton) {
+    images.forEach(img => {
+      img.addEventListener('load', updateSlider);
+    });
+
+
+    updateSlider();
+
+    if (images.length <= 1 && prevButton && nextButton) {
+      prevButton.style.display = 'none';
+      nextButton.style.display = 'none';
+    } else if (prevButton && nextButton) {
+      slider.addEventListener('mouseenter', function() {
+        prevButton.style.display = 'block';
+        nextButton.style.display = 'block';
+      });
+      slider.addEventListener('mouseleave', function() {
+        prevButton.style.display = 'none';
+        nextButton.style.display = 'none';
+      });
 
       prevButton.addEventListener('click', function() {
         currentIndex = (currentIndex - 1 + images.length) % images.length;

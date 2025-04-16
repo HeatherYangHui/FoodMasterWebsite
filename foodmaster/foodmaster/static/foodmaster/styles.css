@@ -727,3 +727,21 @@ footer {
   color: #555;
 }
 
+
+
+
+
+.slider-wrapper img{
+  width: auto;
+  height: 600px; 
+  object-fit: contain; 
+}
+
+
+.sidebar-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-top: 5;
+  margin-bottom: 25px;
+  color: #333;
+}
