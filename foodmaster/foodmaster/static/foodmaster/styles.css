@@ -728,12 +728,9 @@ footer {
 }
 
 
-
-
-
 .slider-wrapper img{
   width: auto;
-  height: 600px; 
+  height: 500px; 
   object-fit: contain; 
 }
 

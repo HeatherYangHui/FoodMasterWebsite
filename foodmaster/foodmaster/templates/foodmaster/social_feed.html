@@ -60,7 +60,7 @@
               </div>
               
               {% if post.postimage_set.all %}
-                <div class="image-slider" style="position: relative;">
+                <div class="image-slider" style="position: relative; background-color: #f2f2f2">
                   <div class="slider-wrapper" style="display: flex;">
                     {% for img in post.postimage_set.all %}
                       <img src="{{ img.image.url }}" loading="lazy"
@@ -82,7 +82,7 @@
                 {% endif %}
                               
               <div style="padding: 20px;">
-                <p style="font-size: 16px; line-height: 1.5; color: #333; margin: 0;">{{ post.content }}</p>
+                <p style="font-size: 20px; line-height: 1.5; color: #333; margin: 0;">{{ post.content }}</p>
                 {% if post.tags %}
                 <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;">
                   {% for tag in post.tags %}
@@ -93,7 +93,7 @@
               </div>
 
               {% if post.shared_from %}
-                <div class="shared-info" style="background-color: #f9f9f9; border: 1px dashed #ccc; padding: 10px; margin: 10px 20px; border-radius: 4px;">
+                <div class="shared-info" style="background-color: #f9f9f9; border: 1px dashed #ccc; padding: 10px; margin: 5px 20px; border-radius: 4px; min-height: 100px;">
                   <strong>Shared from:</strong>
                   <p style="margin: 8px 0;">{{ post.shared_from.content }}</p>
                   <span style="font-size: 14px; color: #666;">by {{ post.shared_from.author.username }}</span>
