@@ -30,8 +30,6 @@ from .models import PostImage
 from .models import SavedRestaurant
 from .models import SavedRecipe
 
-
-from django.views.decorators.http import require_POST
 from .models import Comment
 from datetime import datetime, timezone
 import pytz
