@@ -18,6 +18,11 @@ from django.contrib.auth import logout
 from django.db.models import Count
 from django.core.files.base import ContentFile
 from collections import Counter
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+
 
 from .models import Post
 from .models import Profile
@@ -42,6 +47,7 @@ from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import sys
 from urllib.parse import unquote
+import ast
 
 
 
@@ -95,25 +101,6 @@ def register_view(request):
     else:
         return render(request, 'foodmaster/register.html')
     
-def save_photo_from_url(photo_url, instance):
-    """
-    Download an image from photo_url and save it to the 'photo' ImageField of the given instance.
-    instance should be a model instance that has an ImageField named 'photo'.
-    Returns the URL of the saved photo, or None on failure.
-    """
-    try:
-        response = requests.get(photo_url)
-        if response.status_code == 200:
-            filename = photo_url.split("/")[-1]
-            image_file = ContentFile(response.content)
-            instance.photo.save(filename, image_file, save=True)
-            return instance.photo.url
-        else:
-            print("Request failed with status:", response.status_code)
-            return None
-    except Exception as e:
-        print("Error saving photo:", e)
-        return None
 
 @login_required
 @require_POST
@@ -139,7 +126,14 @@ def toggle_save_restaurant_view(request):
         new_state = 'unsaved'
     except SavedRestaurant.DoesNotExist:
         # Otherwise, create new record.
-        SavedRestaurant.objects.create(user=request.user, place_id=place_id, name=name, address=address)
+
+        SavedRestaurant.objects.create(
+        user=request.user,
+        place_id=place_id,
+        name=name,
+        address=address,
+        photo_url=photo_link
+        )
         new_state = 'saved'
     
     return JsonResponse({'success': True, 'state': new_state})
@@ -808,6 +802,23 @@ def get_city_from_coordinates(lat, lng):
 
 
 @login_required
+@require_POST
+def delete_comment_ajax(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    if request.user == comment.author or request.user == comment.post.author:
+        post = comment.post
+        comment.delete()
+        updated_count = post.comments.count()
+        return JsonResponse({
+            'success': True,
+            'comment_id': comment_id,
+            'comments_count': updated_count
+        })
+    else:
+        return JsonResponse({'success': False, 'error': 'No permission'}, status=403)
+    
+    
+@login_required
 def create_post_view(request):
     cuisine = request.GET.get('cuisine', '') or request.POST.get('cuisine', '')
     lat_str = request.POST.get('lat', '') or request.GET.get('lat', '0')
@@ -887,20 +898,23 @@ def add_comment_ajax(request, post_id):
     """
     if request.method == 'POST':
         post = get_object_or_404(Post, id=post_id)
-        content = request.POST.get('content')  # 或者 JSON 方式获取
+        content = request.POST.get('content') 
+        
         if content:
             new_comment = Comment.objects.create(
                 post=post,
                 author=request.user,
                 content=content
             )
+            can_delete = (request.user == new_comment.author or request.user == post.author)
             return JsonResponse({
                 'success': True,
                 'comment_id': new_comment.id,
                 'author': new_comment.author.username,
                 'content': new_comment.content,
                 'created_at': new_comment.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-                'comments_count': post.comments.count()
+                'comments_count': post.comments.count(),
+                'can_delete': can_delete
             })
         else:
             return JsonResponse({'success': False, 'error': 'Empty content'}, status=400)

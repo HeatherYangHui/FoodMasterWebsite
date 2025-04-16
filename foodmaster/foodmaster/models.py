@@ -12,7 +12,7 @@ class SavedRestaurant(models.Model):
     name = models.CharField(max_length=255)
     address = models.TextField(blank=True, null=True)
     saved_at = models.DateTimeField(auto_now_add=True)
-    photo = models.ImageField(upload_to='restaurant_photos/', blank=True, null=True)
+    photo_url = models.URLField(blank=True, null=True)
 
     class Meta:
         unique_together = ('user', 'place_id')

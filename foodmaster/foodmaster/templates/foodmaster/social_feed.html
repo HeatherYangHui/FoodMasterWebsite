@@ -156,7 +156,10 @@
               <!-- comment list -->
               <div class="comments" data-post-id="{{ post.id }}" style="padding: 0 20px; display: none; background-color: #fcfcfc;">
                 {% for comment in post.comments.all %}
-                  <div class="comment" style="padding: 16px 0; border-bottom: 1px solid #f0f0f0;">
+                <div class="comment"
+                id="comment-{{ comment.id }}"
+                data-post-id="{{ post.id }}"
+                style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #f0f0f0;">
                     <div style="display: flex; gap: 8px; align-items: flex-start;">
                       <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #f0f8ff; display: flex; align-items: center; justify-content: center; font-size: 14px;">👤</div>
                       <div>
@@ -165,9 +168,14 @@
                         <div style="font-size: 12px; color: #999; margin-top: 4px;">{{ comment.created_at|date:'M d, Y H:i' }}</div>
                       </div>
                     </div>
+                    {% if request.user == comment.author or request.user == post.author %}
+                      <button class="btn btn-link" onclick="deleteComment(this, parseInt('{{ comment.id }}', 10))" style="color: #ff5252; font-size: 12px; margin-left: auto;">
+                        Delete
+                      </button>
+                    {% endif %}
                   </div>
                 {% empty %}
-                  <div style="padding: 20px 0; text-align: center; color: #999;">No comments yet. Be the first to comment!</div>
+                  <div class="no-comments-yet" style="padding: 20px 0; text-align: center; color: #999;">No comments yet. Be the first to comment!</div>
                 {% endfor %}
               </div>
 
@@ -299,7 +307,7 @@
   event.preventDefault();
   const postId = formElement.dataset.postId;
   const contentInput = formElement.querySelector('input[name="content"]');
-  const contentValue = contentInput.value;
+  const contentValue = contentInput.value.trim();
 
   fetch(`/ajax/comment/${postId}/`, {
     method: 'POST',
@@ -312,31 +320,56 @@
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      // Clear input
       contentInput.value = '';
-      // Find comment-count and comments container in the same post
       const postElement = formElement.closest('.post');
       const commentCountSpan = postElement.querySelector('.comment-count');
       const commentsContainer = postElement.querySelector('.comments');
 
-      // Update comment count
-      commentCountSpan.textContent = data.comments_count + ' Comments';
+      // Do NOT force display = 'block'; so if it was hidden, it stays hidden
 
-      // Append new comment
+      // Preserve the icon and toggle text
+      const toggleTextSpan = commentCountSpan.querySelector('.toggle-text');
+      let currentToggleText = '';
+      if (toggleTextSpan) {
+        currentToggleText = toggleTextSpan.textContent;
+      }
+      commentCountSpan.innerHTML = `<span style="font-size: 18px;">💬</span><span class="toggle-text">${currentToggleText}</span> ${data.comments_count} Comments`;
+
+      // Remove 'no comments yet' element if present
+      const noCommentsEl = commentsContainer.querySelector('.no-comments-yet');
+      if (noCommentsEl) {
+        noCommentsEl.remove();
+      }
+
+      // Build delete button if can_delete == true
+      let deleteButtonHtml = '';
+      if (data.can_delete) {
+        deleteButtonHtml = `
+          <button class="btn btn-link" onclick="deleteComment(this, ${data.comment_id})"
+                  style="color: #ff5252; font-size: 12px; margin-left: auto;">
+            Delete
+          </button>`;
+      }
+
+      // Append new comment DOM
       const newCommentDiv = document.createElement('div');
       newCommentDiv.innerHTML = `
-        <div class="comment" style="padding: 16px 0; border-bottom: 1px solid #f0f0f0;">
+        <div class="comment" id="comment-${data.comment_id}" data-post-id="${postId}"
+             style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #f0f0f0;">
           <div style="display: flex; gap: 8px; align-items: flex-start;">
-            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #f0f8ff; display: flex; align-items: center; justify-content: center; font-size: 14px;">👤</div>
+            <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #f0f8ff;
+                        display: flex; align-items: center; justify-content: center; font-size: 14px;">👤</div>
             <div>
               <div style="font-weight: 600; font-size: 14px; color: #333;">${data.author}</div>
               <div style="font-size: 14px; color: #333; margin-top: 4px;">${data.content}</div>
               <div style="font-size: 12px; color: #999; margin-top: 4px;">${data.created_at}</div>
             </div>
           </div>
+          ${deleteButtonHtml}
         </div>
       `;
       commentsContainer.appendChild(newCommentDiv.firstElementChild);
+
     } else {
       alert('Error adding comment: ' + data.error);
     }
@@ -426,6 +459,53 @@
     .catch(error => console.error('Error:', error));
   }
 
+  function deleteComment(buttonElement, commentId) {
+  if (!confirm("Are you sure you want to delete this comment?")) return;
+
+  fetch(`/ajax/comment/${commentId}/delete/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': csrftoken,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      const commentDiv = document.getElementById(`comment-${commentId}`);
+      if (commentDiv) {
+        commentDiv.remove();
+        const postIdVal = commentDiv.dataset.postId; 
+        // Now find post container by #post-xxx
+        const postElement = document.getElementById(`post-${postIdVal}`);
+        if (postElement) {
+          const commentCountSpan = postElement.querySelector('.comment-count');
+          if (commentCountSpan) {
+            const toggleTextSpan = commentCountSpan.querySelector('.toggle-text');
+            let currentToggleText = '';
+            if (toggleTextSpan) {
+              currentToggleText = toggleTextSpan.textContent;
+            }
+            commentCountSpan.innerHTML = `
+              <span style="font-size: 18px;">💬</span>
+              <span class="toggle-text">${currentToggleText}</span>
+              ${data.comments_count} Comments
+            `;
+          } else {
+            console.warn("No .comment-count found in post container.");
+          }
+        } else {
+          console.warn(`No post container with id="post-${postIdVal}" found.`);
+        }
+      } else {
+        console.warn(`Could not find comment-${commentId} in the DOM`);
+      }
+    } else {
+      alert('Error deleting comment: ' + data.error);
+    }
+  })
+  .catch(error => console.error('Error deleting comment:', error));
+}
 </script>
 <!-- Slider functionality -->
 <script>

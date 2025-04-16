@@ -73,9 +73,10 @@
         
         <form action="{% url 'toggle_save_restaurant' %}" method="post" id="save-restaurant-form" style="display: inline;">
           {% csrf_token %}
-          <input type="hidden" name="photo_urls" value="{{ restaurant.photo_urls }}">
+          <input type="hidden" name="photo_urls" 
+         value="{% if restaurant.photo_urls and restaurant.photo_urls|length %}{{ restaurant.photo_urls.0 }}{% else %}''{% endif %}">
           <input type="hidden" name="place_id" value="{{ restaurant.id }}">
-          <input type="hidden" name="name" value="{{ restaurant.name|urlencode }}">
+          <input type="hidden" name="name" value="{{ restaurant.name }}">
           <input type="hidden" name="address" value="{{ restaurant.address }}">
           <button type="submit" class="btn-save {% if is_saved %}saved{% endif %}" id="save-restaurant-btn">
             {% if is_saved %}Saved{% else %}Save{% endif %}
