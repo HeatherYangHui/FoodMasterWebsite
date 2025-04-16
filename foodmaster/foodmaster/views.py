@@ -922,8 +922,6 @@ def add_comment_ajax(request, post_id):
         return JsonResponse({'success': False, 'error': 'Invalid method'}, status=400)
 
 
-from django.http import JsonResponse
-
 @login_required
 def like_post_ajax(request, post_id):
     """
