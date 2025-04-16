@@ -37,8 +37,6 @@ from datetime import datetime, timezone
 import pytz
 from django.urls import reverse
 
-from django.shortcuts import get_object_or_404, redirect
-
 import math
 import requests
 from django.conf import settings
