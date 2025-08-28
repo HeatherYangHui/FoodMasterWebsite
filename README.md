@@ -20,10 +20,4 @@ The project integrates multiple APIs and showcases **frontend, backend, and DevO
 **APIs:** Spoonacular, Google Places, Nutritionix  
 **Cloud & DevOps:** AWS EC2, RDS, S3, Nginx, Daphne, Certbot, Docker, GitHub Actions  
 
----
 
-## 📷 Demo Screenshots
-*(Add your screenshots here using markdown image syntax, e.g.,)*  
-```markdown
-![Home Page](screenshots/home.png)
-![Search Results](screenshots/results.png)
