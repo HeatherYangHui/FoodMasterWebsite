@@ -1,14 +1,29 @@
-Description:
-FoodMaster is a full-stack web application built at Carnegie Mellon University to help users discover restaurants and track nutrition. The project integrates multiple APIs (Spoonacular, Google Places, Nutritionix) and uses a Django backend with MySQL for data storage. The frontend is designed with HTML, CSS, and JavaScript, and the app was deployed on AWS with Nginx, Daphne, and Certbot for secure production use.
+# FoodMaster 🍽️
 
-Key features include:
+FoodMaster is a full-stack web application built at Carnegie Mellon University to help users **discover restaurants** and **track nutrition**.  
+The project integrates multiple APIs and showcases **frontend, backend, and DevOps skills** through end-to-end development and deployment.  
 
-Restaurant discovery with location-based search
+---
 
-Nutrition insights powered by third-party APIs
+## 🚀 Features
+- 🌍 **Restaurant Discovery** — location-based search with Google Places API  
+- 🥗 **Nutrition Insights** — powered by Spoonacular & Nutritionix APIs  
+- 🔐 **User Management** — secure backend with Django & MySQL  
+- ☁️ **Cloud Deployment** — hosted on AWS EC2 with Nginx, Daphne, and Certbot  
+- ⚙️ **DevOps** — CI/CD pipelines and containerization for scalability  
 
-Secure backend with user accounts and data management
+---
 
-Production deployment with cloud infrastructure (AWS EC2, RDS, S3)
+## 🛠️ Tech Stack
+**Frontend:** HTML, CSS, JavaScript  
+**Backend:** Django (Python), MySQL  
+**APIs:** Spoonacular, Google Places, Nutritionix  
+**Cloud & DevOps:** AWS EC2, RDS, S3, Nginx, Daphne, Certbot, Docker, GitHub Actions  
 
-CI/CD setup and containerization for scalability
+---
+
+## 📷 Demo Screenshots
+*(Add your screenshots here using markdown image syntax, e.g.,)*  
+```markdown
+![Home Page](screenshots/home.png)
+![Search Results](screenshots/results.png)
